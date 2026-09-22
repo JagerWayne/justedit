@@ -1,0 +1,3689 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dracula">
+<head>
+  <meta charset="UTF-8">
+  <!-- Reliable hardening without breaking the sandboxed live preview: locks down
+       object/base/form injection and blocks eval, while still allowing the inline
+       app script and CDN assets the editor depends on. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self'; frame-src 'self' data: blob: https:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <!-- Optimized viewport for mobile devices, preventing auto-zoom on inputs -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>JustEdit Pro</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- CodeMirror Core & Themes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css" integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css" integrity="sha384-ccdJwIIg/K0Ab6aXF4MPACh7ckk61tvQFTrfkhXZEALgAETURNZIAuQLcS/aPbrM" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css" integrity="sha384-05WuhgjXiqmZzcQ3vQRQ39HN356Yqb+SnhvELzFtpwS5b2IlqE8QsOO5LCSJ2znj" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/eclipse.min.css" integrity="sha384-dq10nYMe5EzlTlySS4PL3lt13I+hSWRGzpsgTbwcrbXrI3hXw2NpiZIi4vAnxjI3" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldgutter.min.css" integrity="sha384-lENpJzDaUuHSHqXgx1AS0L3FWb6wmvqGlEMJQ7c/13RO5V/IB/rSu3R/o9Cdh+js" crossorigin="anonymous">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@1.27.0" integrity="sha384-iGjGimQxA1QCAbLRiSWPFc+KsjPW3kLS/2Cub+yRgYfd4EUEx/dxoJ0MKyEsbjop" crossorigin="anonymous"></script>
+
+  <!-- External Tools: Formatters & Parsers -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify.min.js" integrity="sha384-kC1dvisnNQ51XxkEW3aeXZoStwzB3eEhlQ6keq7Heh4dny+Ec5+zjJENryTLZrtP" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify-html.min.js" integrity="sha384-WMPTHz6wdU4SJXUOCUb/Hqi4pzFb6IWkRFOgT4mQ8iQ03t0zuYYy5R87iooq0Bfk" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify-css.min.js" integrity="sha384-90W1g/gIHCeb9RgkaWDW93Q1JiCTCePqWTO3phU5Xz4rty3+zHHT/D7gqhK69ca9" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js" integrity="sha384-GeYpwgp5GkQmpZrq04tb+TdM3a4Qseb6szt1//UDCTMBnEn71dBrhgQwHMgNPcY4" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.11/purify.min.js" integrity="sha384-o44XUELLEnv/iSlA1NWxBweqbD4TSR0qgq2VzVsxtkHS989JJjGKSE9vkfo5MN4K" crossorigin="anonymous"></script>
+
+  <!-- CodeMirror Core JS & API -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js" integrity="sha384-uTzi9PU3axyLeKbgCPqQdNFT5Q23BRgFbmtrolYC7ROlbWVv7IggV+3r0ALSQd/s" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/search/searchcursor.min.js" integrity="sha384-ILkploZWukdp1VMmzMnE+32H0mgy2e+w29evc4grALGOqIRGBgbBGrwkX7a6zK7y" crossorigin="anonymous"></script>
+  <!-- defineSimpleMode: required by rust/dockerfile (and other simple modes) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/mode/simple.min.js" integrity="sha384-5+aYjV0V2W3IwhAYp/9WOrGMv1TaYkCjnkkW7Hv3yJQo28MergRCSRaUIUzDUs2J" crossorigin="anonymous"></script>
+  
+  <!-- CodeMirror Syntax Modes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js" integrity="sha384-xPpkMo5nDgD98fIcuRVYhxkZV6/9Y4L8s3p0J5c4MxgJkyKJ8BJr+xfRkq7kn6Tw" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js" integrity="sha384-g0o+WW9mdIxA7LaaCKTkRm0M5TVT+Bb4s9eocxPsI2G0Xm0POG9iD6G6qP1IIsfS" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js" integrity="sha384-fpeIC2FZuPmw7mIsTvgB5BNc8QVxQC/nWg2W+CgPYOAiBiYVuHe2E8HiTWHBMIJQ" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js" integrity="sha384-xYIbc5F55vPi7pb/lUnFj3wu24HlpAMZdtBHkNrb2YhPzJV3pX7+eqXT2PXSNMrw" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js" integrity="sha384-Xy+2exU6lBoT4OpUOtnQb+cUpn+nlJQEHvRobWVtwz6wIsw4oNoO7xyd/l8rYgMy" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/markdown/markdown.min.js" integrity="sha384-nPWqI+4+e+SwcpI6LVYBpaQd+zIZIQgC6lN7Gep8MJQr5DdmMGtWV8qJQgcyODcF" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js" integrity="sha384-bZx++XMDqT0QRVoq6eVZnkq04LmwWZ0eLo0tFdSGkOJgH8qiqeMIIFJ+mRaM0wfb" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/sql/sql.min.js" integrity="sha384-HxXmA1hLc56V6Ja4yfcCwAprmbnS4tuvKYS0qKG3t6oxOFMflcnYq5fOnt6wVCda" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/php/php.min.js" integrity="sha384-1FUwPY2kaZKXw258/9CYBSS+zcc3CPggxE1zLjmYYiOdkcOw3KcXH5VNJWWbjw2U" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/go/go.min.js" integrity="sha384-Lta51S44BeeJtSB7HoRnIzvHdD+1OhN+s9Nh5WP3Bp3QsIm6xNd7JBIF/93Yu4iK" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/rust/rust.min.js" integrity="sha384-SR4yBoZPBNymEiWYb4h8YbjccmCDvVyzr5DYXq4QWt7E/voRHmUbr/ja617eM6Rh" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/shell/shell.min.js" integrity="sha384-dmPRq54XNtYnlnAo7QrwJnZNa5r0JP5gU8z4H0686Cgz37qrR2jmNaDHUXyMI4wn" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/yaml/yaml.min.js" integrity="sha384-LekyoEGHzBMGUx26EEtC5G6HD6iyIr0msuy3LP3F8V98vVS5ZoNfIyiirXsoqAt/" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/ruby/ruby.min.js" integrity="sha384-X1fjw3/PXnpDnnE168So+cJbmr6pkkiFoM+e25e2G7UNQRSLh5wcn/h7qbbSq2nC" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/perl/perl.min.js" integrity="sha384-IOlFlxqYEbJk+261wXjzcS2zY/Fujttgbg66lsn/CiPuaOMiM5KhdcIk+DcdYLKl" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/lua/lua.min.js" integrity="sha384-P7qzqAnr4URUZ/+DmECYaCWa/kv5fimX54PJArLW+c6mJEzmZmU79Z/1nvzd5uGn" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/r/r.min.js" integrity="sha384-5Tka+PKM5Dr+X70epr798DzvdoAuC3pJ8Od+uq28t4zdkU4UaSV9/yAPDOV5Qmsv" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/dart/dart.min.js" integrity="sha384-iIGtJx4I0eMPYGMxcs0eIprVcLVpohMPkR3zozsQt0BTVqacwA8pjRjeZLmQ+8cd" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/swift/swift.min.js" integrity="sha384-VTJz9HPfJaa5K8kZ0ZXEuy/7QvNcfOnN23vIZPz4kNfubM9ide6/mXfbzMkk+SWN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/vue/vue.min.js" integrity="sha384-qMUO8y1FkpYSlefEzg5As9BXNkWEfrRc+2LJMguj/SxtBDjhIJ7zs4MD6tndT6ek" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/dockerfile/dockerfile.min.js" integrity="sha384-iNrbKQ2iIc7zgM8fkc2gBy7c8xAA/3Dg/1t0kRUnbZmTgpOOHlrKYGpY+nlI1Q70" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/nginx/nginx.min.js" integrity="sha384-AxmshZ2LTwEualbmmv/fBvEhRFAC2wf7RytjpARUB796/N/TzBgMcg6hytgA/9XM" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/toml/toml.min.js" integrity="sha384-yXH8c7mgHjmoKOVYE4TZW9tpuoQYhYuFzKz7yOwfKaVdnQQKMKKCqd5NH0upv0VQ" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/properties/properties.min.js" integrity="sha384-d5RwbpFd0jLHYLXBilnxqZYSBTRHa3M0teAjG0DfTgxJRjFO+AB+cyzp98CUUbpn" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/diff/diff.min.js" integrity="sha384-LQlEpxhPVss01BpgFtFS619MjPWXEFWC+AtH7y0Oi8fLkMa1HEdyjV3AK/CUFj4v" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/powershell/powershell.min.js" integrity="sha384-TID09n57/vVmFNJRWS8rtQ5RBOW4vgZKG6bWvvl2D7loDzv0rhOSkoUr/u+MA1F0" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/cmake/cmake.min.js" integrity="sha384-DSg+Zmx9hkzOP62jUwxXuE9VVsQCU4qdg7ehnfviEmNHwHZJyIx3AE/erkeMxbZn" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/stex/stex.min.js" integrity="sha384-n2wtKiiFdL2aVjOQU5/wAHr99MFhapi3cCgkCmuoYubaWJEBZ4pJQKZvwtPBC6Zj" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/haskell/haskell.min.js" integrity="sha384-nsDYBRb4TswZWQV/BXZhK3rnWmr/pJg1Hj/YkNKi5oJRQOI62frsB4VQkE8kIxJq" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/groovy/groovy.min.js" integrity="sha384-iSDgjaHXed2pYMcH5TrzSELWHbVki2W+HuA4/OXd+Oh25MfhCP4QakNJenR9tOzm" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/julia/julia.min.js" integrity="sha384-k7i8ZM1kPXH5Belm+woLOr5KjO3e7hFcqWx70Mq/4mUa4c+ziqdpULGTwvxAQUYH" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/crystal/crystal.min.js" integrity="sha384-CaN9AN2DKMuEdwNVK01lGDJsGQk0MX/m9ltrVPC0sQFlGWAzMsIvUrwEbuppIRxq" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/vb/vb.min.js" integrity="sha384-+a5C+CG9PsHQvKH3yKD7MHWKmWWlTANyTkhpsR96pLdU4i/e/oKFL7tIe29Ax1fA" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/pascal/pascal.min.js" integrity="sha384-PuJXsOmJlnMZttAisVF3q9rJb3C200fYfOo/4xVsrydR+tiqwfMa5ujh3lhKvEUG" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/coffeescript/coffeescript.min.js" integrity="sha384-221pVSb5Q5KUrnj9z03J5NFzY+GSMOXFaTEPBBgQ+wpDPwhuLs+41WriZ4exF/jH" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/gas/gas.min.js" integrity="sha384-aU7llsR6g3v7/q0BMLiK+uc//Ibk/zcP7dCWdsSleQeOyhSQfybSm5lxOOiqQk29" crossorigin="anonymous"></script>
+  
+  <!-- Addons -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js" integrity="sha384-69mJoUoPPF/C7qPs6lLjvXvrt6w225+rmxWqGO3a1glVjITdnnwPQOtG9FRTd2Ni" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/matchbrackets.min.js" integrity="sha384-LjCI3E8qhhxXZvu7+FCvqx9eZYSowFvuJ7z54KsgI/BDPGKEuysqCg/vYiKHvC4Y" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldcode.min.js" integrity="sha384-W02BpSarmulrXSlX8vGo+pIMmj77J5/466I8FNZUadgZnzCRDW0voXoe9lVELNx6" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldgutter.min.js" integrity="sha384-Ac/3zEI5dlnDOqcbGRHTFqD6PaE02DrexbwN3Gkp05zzHS/Lml381fYFxc/Ltg8T" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/brace-fold.min.js" integrity="sha384-zzWC7M208QkDtoZg1qnzYyhUoRgjEG1H/k7m0G5OZM5BT/NYyLFGO9EAfSEhMHPt" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/selection/active-line.min.js" integrity="sha384-hcxaXyAtJ30s2NeDu1OHWsQRiHiWuYLTbI596+YFb+f2pFhzO0mDuahZziRPPDxg" crossorigin="anonymous"></script>
+
+  <style>
+    /* Global Variables & Theming */
+    :root {
+      --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --app-font-size: 14px;
+      --z-overlay: 2000;
+      --z-modal: 3000;
+      --z-toast: 4000;
+      --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Dracula Theme (Default Dark) */
+    html[data-theme="dracula"] {
+      --bg-root: #1e1e2e; --bg-panel: #222234;
+      --bg-hover: #313244; --bg-active: #45475a;
+      --text-main: #cdd6f4; --text-muted: #a6adc8;
+      --accent: #89b4fa; --accent-hover: #b4befe;
+      --border-light: #313244; --border-dark: #11111b;
+      --hex-offset: #f38ba8; --hex-byte: #a6e3a1; --hex-ascii: #f9e2af;
+      --cm-theme: 'dracula';
+    }
+
+    /* Monokai Theme (Dark) */
+    html[data-theme="monokai"] {
+      --bg-root: #272822; --bg-panel: #3e3d32;
+      --bg-hover: #49483e; --bg-active: #75715e;
+      --text-main: #f8f8f2; --text-muted: #8f908a;
+      --accent: #fd971f; --accent-hover: #e6db74;
+      --border-light: #3e3d32; --border-dark: #171814;
+      --hex-offset: #f92672; --hex-byte: #a6e22e; --hex-ascii: #e6db74;
+      --cm-theme: 'monokai';
+    }
+
+    /* GitHub Light Theme */
+    html[data-theme="github-light"] {
+      --bg-root: #ffffff; --bg-panel: #ffffff;
+      --bg-hover: #eaeef2; --bg-active: #d0d7de;
+      --text-main: #24292f; --text-muted: #57606a;
+      --accent: #0969da; --accent-hover: #0349b4;
+      --border-light: #d0d7de; --border-dark: #afb8c1;
+      --hex-offset: #cf222e; --hex-byte: #1a7f37; --hex-ascii: #9a6700;
+      --cm-theme: 'default';
+    }
+
+    /* Eclipse Light Theme */
+    html[data-theme="eclipse"] {
+      --bg-root: #ffffff; --bg-panel: #fcfcfc;
+      --bg-hover: #e8e8e8; --bg-active: #dcdcdc;
+      --text-main: #000000; --text-muted: #666666;
+      --accent: #2a00ff; --accent-hover: #1f00cc;
+      --border-light: #d3d3d3; --border-dark: #aaaaaa;
+      --hex-offset: #a11; --hex-byte: #008800; --hex-ascii: #22a;
+      --cm-theme: 'eclipse';
+    }
+
+    /* Reset & Base */
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: var(--font-ui); background-color: var(--bg-root); color: var(--text-main);
+      height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column;
+    }
+
+    /* Layout */
+    #app-container {
+      display: flex; flex: 1; min-height: 0; position: relative; z-index: 30;
+    }
+
+    .icon-btn {
+      background: none; border: none; color: var(--text-muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 6px;
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+    .icon-btn:hover, .icon-btn:active { background-color: var(--bg-hover); color: var(--text-main); }
+
+    /* File Explorer Sidebar */
+    #sidebar {
+      width: 260px; flex-shrink: 0; display: flex; flex-direction: column;
+      background-color: var(--bg-panel); border-right: 1px solid var(--border-dark); min-width: 0; overflow: hidden;
+    }
+    #sidebar.collapsed { display: none; }
+    #sidebar-header {
+      display: flex; align-items: center; gap: 6px; padding: 0 6px 0 12px; height: 44px;
+      border-bottom: 1px solid var(--border-light); color: var(--text-muted); font-size: 13px; font-weight: 600;
+    }
+    #sidebar-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main); }
+    #file-tree { flex: 1; overflow: auto; padding: 6px 0; font-size: 13px; }
+    .tree-row {
+      display: flex; align-items: center; gap: 6px; padding: 4px 10px; cursor: pointer;
+      color: var(--text-main); white-space: nowrap; user-select: none;
+    }
+    .tree-row:hover { background-color: var(--bg-hover); }
+    .tree-row.active { background-color: var(--bg-active); }
+    .tree-caret { width: 14px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: transform 0.15s; flex-shrink: 0; }
+    .tree-caret.open { transform: rotate(90deg); }
+    .tree-icon { flex-shrink: 0; color: var(--text-muted); }
+    .tree-name { overflow: hidden; text-overflow: ellipsis; }
+    .tree-children { display: none; }
+    .tree-children.open { display: block; }
+    #sidebar-hint, #sidebar-reconnect { padding: 12px 14px; color: var(--text-muted); font-size: 12px; }
+    #sidebar-reconnect { display: flex; }
+    #sidebar-reconnect .btn { width: 100%; }
+
+    @media (max-width: 768px) {
+      #sidebar { position: absolute; top: 0; bottom: 0; left: 0; z-index: 1500; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+    }
+
+    /* Main Editor Area */
+    #main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; background-color: var(--bg-root); position: relative; }
+
+    /* Tabs Top Bar */
+    #tabs-bar {
+      display: flex; background-color: var(--bg-panel); overflow-x: auto; height: 44px; scrollbar-width: none;
+      -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--border-dark);
+    }
+    #tabs-bar::-webkit-scrollbar { display: none; }
+    
+    .tab {
+      display: flex; align-items: center; gap: 8px; padding: 0 16px; height: 100%;
+      background-color: var(--bg-panel); border-right: 1px solid var(--border-dark);
+      font-size: 13px; cursor: pointer; min-width: 130px; max-width: 220px;
+      color: var(--text-muted); border-top: 2px solid transparent; user-select: none; flex-shrink: 0;
+    }
+    .tab.active { background-color: var(--bg-root); color: var(--text-main); border-top-color: var(--accent); }
+    .tab .tab-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+    .tab .tab-close { opacity: 0; border: none; background: none; color: inherit; padding: 4px; border-radius: 4px; }
+    .tab:hover .tab-close, .tab.active .tab-close { opacity: 1; }
+    .tab-add {
+      display: flex; align-items: center; justify-content: center; height: 100%; padding: 0 14px;
+      background: none; border: none; border-right: 1px solid var(--border-dark);
+      color: var(--text-muted); cursor: pointer; flex-shrink: 0;
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+    .tab-add:hover, .tab-add:active { background-color: var(--bg-hover); color: var(--text-main); }
+
+    /* Toolbar / Breadcrumbs */
+    #breadcrumbs {
+      display: flex; align-items: center; padding: 4px 16px; height: 44px;
+      background-color: var(--bg-root); border-bottom: 1px solid var(--border-light);
+      font-size: 13px; color: var(--text-muted); justify-content: space-between; gap: 8px; position: relative;
+    }
+    .bc-path { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+    .bc-path #bc-filename { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: var(--text-main); font-size: 14px;}
+    .bc-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+    /* Editor Container & Views */
+    #editor-viewport { flex: 1; position: relative; display: flex; overflow: hidden; }
+    .view-pane { display: none; flex: 1; height: 100%; overflow: hidden; position: relative; }
+    .view-pane.active { display: flex; }
+
+    /* CodeMirror Overrides */
+    .CodeMirror {
+      height: 100% !important; width: 100% !important; font-family: var(--font-mono);
+      font-size: var(--app-font-size); line-height: 1.6; background: transparent !important;
+    }
+    .CodeMirror-activeline-background { background: var(--bg-hover) !important; }
+    .CodeMirror-selected { background: rgba(137, 180, 250, 0.4) !important; }
+    /* Find/Replace match highlighting */
+    .cm-search-match { background: rgba(249, 226, 175, 0.35); border-radius: 2px; }
+    .cm-search-match-current { background: var(--accent) !important; color: var(--bg-root) !important; border-radius: 2px; }
+
+    /* Split View (Markdown) */
+    #split-view { display: none; width: 100%; height: 100%; }
+    #split-view.active { display: flex; }
+    #md-preview {
+      flex: 1; border-left: 1px solid var(--border-light); background-color: var(--bg-panel);
+      padding: 24px; overflow-y: auto; color: var(--text-main); font-size: 15px; line-height: 1.6;
+    }
+    #md-preview h1, #md-preview h2, #md-preview h3 { border-bottom: 1px solid var(--border-light); padding-bottom: 8px; margin-bottom: 16px; margin-top: 24px; }
+    #md-preview code { background: var(--bg-root); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 13px; }
+    #md-preview pre { background: var(--bg-root); padding: 16px; border-radius: 8px; overflow-x: auto; margin-bottom: 16px; }
+
+    /* Virtual Hex Editor - Optimized for Mobile */
+    #hex-view { background-color: var(--bg-root); display: none; outline: none; position: relative; min-height: 0; }
+    #hex-view.active { display: flex; flex-direction: column; }
+
+    #hex-toolbar {
+      display: flex; align-items: center; gap: 6px; padding: 6px 12px; flex-shrink: 0;
+      background-color: var(--bg-panel); border-bottom: 1px solid var(--border-light); flex-wrap: wrap; row-gap: 6px;
+    }
+    #hex-search-input {
+      flex: 1 1 140px; min-width: 120px; padding: 6px 10px; background: var(--bg-root);
+      border: 1px solid var(--border-dark); border-radius: 6px; color: var(--text-main);
+      font-family: var(--font-mono); font-size: 14px; outline: none;
+    }
+    #hex-search-input:focus { border-color: var(--accent); }
+    #hex-search-count { font-size: 12px; color: var(--text-muted); white-space: nowrap; min-width: 46px; text-align: center; }
+
+    #hex-scroll-x { flex: 1; overflow-x: auto; -webkit-overflow-scrolling: touch; min-height: 0; }
+    #hex-view-inner {
+      min-width: 580px; display: flex; flex-direction: column; height: 100%; font-family: var(--font-mono); font-size: var(--app-font-size);
+    }
+    .hex-header {
+      display: flex; padding: 12px 16px; background-color: var(--bg-panel); border-bottom: 1px solid var(--border-light);
+      font-weight: 600; font-size: 13px; color: var(--text-muted);
+    }
+    .h-col-offset { width: 100px; flex-shrink: 0; }
+    .h-col-hex { width: 440px; flex-shrink: 0; }
+    
+    #hex-scroll-container { flex: 1; overflow-y: auto; position: relative; }
+    #hex-spacer { width: 1px; }
+    #hex-content { position: absolute; top: 0; left: 0; right: 0; padding: 0 16px; }
+    
+    /* Hex Layout Styles */
+    .hex-row-group { display: flex; flex-direction: column; height: 56px; border-bottom: 1px solid var(--border-dark); justify-content: center; }
+    .hex-row-group:hover { background-color: var(--bg-hover); }
+    .hex-sub-row { display: flex; align-items: center; height: 26px; }
+    
+    .hex-sub-row .offset { width: 100px; color: var(--hex-offset); opacity: 0.8; font-size: 13px; flex-shrink: 0; }
+    .hex-sub-row .offset.empty { opacity: 0; }
+    
+    .hex-sub-row .bytes { width: 440px; display: flex; gap: 6px; flex-shrink: 0; }
+    .hex-sub-row .bytes.hex-data { color: var(--hex-byte); }
+    .hex-sub-row .bytes.text-data { color: var(--hex-ascii); font-size: 14px; }
+    
+    .hex-sub-row .bytes .cell { width: 22px; text-align: center; border-radius: 4px; cursor: pointer; line-height: 22px; }
+    .hex-sub-row .bytes .cell.sel { background: var(--accent); color: var(--bg-root); font-weight: bold; }
+    .hex-sub-row .bytes .cell.match { box-shadow: inset 0 0 0 1px var(--accent); border-radius: 4px; }
+    .hex-sub-row .bytes .gap { width: 8px; }
+
+    /* Hidden Mobile Hex Input */
+    #hex-hidden-input {
+      position: absolute; opacity: 0; pointer-events: none;
+      width: 1px; height: 1px; top: 0; left: 0; z-index: -1;
+    }
+
+    /* Image Viewer */
+    #image-view { flex-direction: column; background-color: var(--bg-root); }
+    #image-toolbar {
+      display: flex; align-items: center; gap: 8px; padding: 6px 16px; flex-shrink: 0;
+      background-color: var(--bg-panel); border-bottom: 1px solid var(--border-light);
+      flex-wrap: wrap;
+    }
+    #image-zoom-lbl { font-size: 13px; color: var(--text-muted); min-width: 52px; text-align: center; font-weight: 600; }
+    #image-adjust-bar {
+      display: flex; align-items: center; gap: 10px; padding: 6px 16px; flex-shrink: 0;
+      background-color: var(--bg-panel); border-bottom: 1px solid var(--border-light);
+      flex-wrap: wrap; row-gap: 6px;
+    }
+    .adj-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+    .adj-item input[type=range] { width: 80px; accent-color: var(--accent); }
+    .adj-val { min-width: 26px; text-align: right; color: var(--text-main); }
+    .adj-sep { width: 1px; height: 20px; background: var(--border-light); flex-shrink: 0; }
+    #image-canvas { flex: 1; overflow: auto; padding: 24px; min-height: 0; display: block; }
+    #image-view-img {
+      display: block; margin: auto; user-select: none; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      background: repeating-conic-gradient(rgba(128,128,128,0.25) 0% 25%, transparent 0% 50%) 0 0 / 16px 16px;
+    }
+
+    /* Professional Dropdown Editor Menu */
+    .dropdown-menu {
+      position: absolute; right: 16px; top: 44px; background: var(--bg-panel);
+      border: 1px solid var(--border-light); border-radius: 12px; box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+      z-index: var(--z-modal); display: none; flex-direction: column; min-width: 260px;
+      max-height: calc(100dvh - 90px); overflow-y: auto; scrollbar-width: none;
+      padding: 8px 0;
+    }
+    .dropdown-menu::-webkit-scrollbar { display: none; }
+    .dropdown-menu.active { display: flex; animation: fadeDown 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .menu-section-title {
+      font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.5px; padding: 12px 20px 4px 20px; pointer-events: none; user-select: none;
+    }
+    
+    .menu-item {
+      padding: 10px 20px; display: flex; align-items: center; gap: 14px; font-size: 14px;
+      color: var(--text-main); cursor: pointer; user-select: none; transition: background 0.1s;
+    }
+    .menu-item:hover, .menu-item:active { background: var(--accent); color: var(--bg-root); }
+    .menu-item:hover select { color: var(--bg-root); }
+    .menu-divider { height: 1px; background: var(--border-light); margin: 6px 0; flex-shrink: 0; }
+    
+    .menu-item select {
+      flex: 1; background: transparent; border: none; outline: none; 
+      color: var(--text-main); font-family: var(--font-ui); font-size: 14px; cursor: pointer;
+      appearance: none; -webkit-appearance: none; padding-right: 10px;
+    }
+    .menu-item select option { background: var(--bg-panel); color: var(--text-main); }
+
+    /* Status Bar with Safe Area Support */
+    #status-bar {
+      min-height: 28px; background-color: var(--accent); color: var(--bg-root); display: flex; justify-content: space-between;
+      align-items: center; padding: 4px 16px; padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px)); font-size: 12px; font-weight: 600; z-index: 20; position: relative;
+    }
+    .sb-section { display: flex; gap: 16px; align-items: center; }
+    .sb-item { display: flex; align-items: center; gap: 6px; }
+
+    /* Modals & Overlays */
+    .overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+      z-index: var(--z-modal); display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    .overlay.active { display: flex; }
+    
+    .modal {
+      background: var(--bg-panel); border: 1px solid var(--border-light); border-radius: 12px; width: 400px;
+      max-width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; overflow: hidden;
+    }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border-light); font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+    .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border-light); display: flex; justify-content: flex-end; gap: 12px; background: var(--bg-panel); }
+    
+    /* Find/Replace specific styles */
+    .fr-input-wrapper {
+      display: flex; align-items: center; background: var(--bg-root); border: 1px solid var(--border-dark);
+      border-radius: 8px; padding-right: 6px; overflow: hidden; transition: border-color 0.2s;
+    }
+    .fr-input-wrapper:focus-within { border-color: var(--accent); }
+    .fr-input-wrapper input { border: none; flex: 1; border-radius: 0; padding: 12px; outline: none; background: transparent; color: var(--text-main); font-family: var(--font-ui); font-size: 16px; }
+    .fr-toggles { display: flex; gap: 4px; }
+    .fr-toggle-btn { background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: 4px; padding: 4px 6px; font-family: var(--font-mono); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; user-select: none; }
+    .fr-toggle-btn:hover { background: var(--bg-hover); color: var(--text-main); }
+    .fr-toggle-btn.active { background: var(--accent); color: var(--bg-root); border-color: var(--accent); }
+
+    /* HTML Preview Custom Modal Size */
+    #html-preview-modal .modal { width: 90vw; height: 90vh; max-width: none; background: #fff; }
+    #html-preview-modal .modal:fullscreen { width: 100vw; height: 100vh; border-radius: 0; border: none; }
+
+    /* Standard Inputs */
+    input.input-field, select.input-field, textarea.input-field {
+      width: 100%; padding: 12px; background: var(--bg-root); border: 1px solid var(--border-dark);
+      color: var(--text-main); border-radius: 8px; font-family: var(--font-ui); font-size: 16px; outline: none;
+    }
+    input.input-field:focus, select.input-field:focus, textarea.input-field:focus { border-color: var(--accent); }
+    
+    .btn { padding: 10px 18px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;}
+    .btn-primary { background: var(--accent); color: var(--bg-root); }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: var(--bg-hover); color: var(--text-main); }
+
+    /* Drag Drop Overlay */
+    #drop-zone {
+      position: fixed; inset: 0; background: rgba(137, 180, 250, 0.15); backdrop-filter: blur(8px);
+      border: 4px dashed var(--accent); z-index: var(--z-overlay); display: none; align-items: center; justify-content: center; flex-direction: column; font-size: 24px; font-weight: 600; color: var(--accent); pointer-events: none;
+    }
+    #drop-zone.active { display: flex; }
+
+    /* Toasts */
+    #toast-container { position: fixed; bottom: 48px; left: 50%; transform: translateX(-50%); z-index: var(--z-toast); display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90vw; max-width: 400px; align-items: center;}
+    .toast { background: var(--bg-panel); border: 1px solid var(--border-light); color: var(--text-main); padding: 12px 20px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-size: 14px; font-weight: 500; opacity: 0; transform: translateY(20px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 10px;}
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* Command Palette */
+    .palette-item {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
+      cursor: pointer; color: var(--text-main); font-size: 14px; user-select: none;
+    }
+    .palette-item.active, .palette-item:hover { background: var(--accent); color: var(--bg-root); }
+    .palette-item .palette-hint { margin-left: auto; font-size: 12px; opacity: 0.7; white-space: nowrap; }
+    .palette-empty { padding: 12px; color: var(--text-muted); font-size: 13px; }
+
+    /* Theme Editor */
+    .field-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+    .theme-color-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+    .theme-color-row input[type=color] { width: 34px; height: 26px; padding: 0; border: 1px solid var(--border-dark); border-radius: 6px; background: none; cursor: pointer; flex-shrink: 0; }
+
+    /* Crop */
+    #crop-stage { position: relative; overflow: hidden; background: #111; display: flex; align-items: center; justify-content: center; max-height: 60vh; user-select: none; touch-action: none; }
+    #crop-img { display: block; max-width: 100%; max-height: 60vh; pointer-events: none; }
+    #crop-selection { position: absolute; border: 1px solid var(--accent); box-shadow: 0 0 0 9999px rgba(0,0,0,0.55); cursor: move; touch-action: none; }
+    .crop-handle { position: absolute; width: 16px; height: 16px; background: var(--accent); border: 2px solid var(--bg-panel); border-radius: 50%; touch-action: none; }
+    .crop-handle[data-handle="nw"] { top: -8px; left: -8px; cursor: nwse-resize; }
+    .crop-handle[data-handle="ne"] { top: -8px; right: -8px; cursor: nesw-resize; }
+    .crop-handle[data-handle="sw"] { bottom: -8px; left: -8px; cursor: nesw-resize; }
+    .crop-handle[data-handle="se"] { bottom: -8px; right: -8px; cursor: nwse-resize; }
+
+    /* --- MOBILE RESPONSIVE OVERRIDES --- */
+    @media (max-width: 768px) {
+      #split-view { flex-direction: column; }
+      #split-view > div { flex: 1 1 50%; }
+      #md-preview { border-left: none; border-top: 1px solid var(--border-light); padding: 16px; }
+
+      #sb-lang, #sb-encoding, #sb-hex-lbl { display: none !important; }
+      
+      /* Mobile formatting for Find & Replace */
+      #find-replace-modal .modal-footer { flex-direction: column; }
+      #find-replace-modal .modal-footer > div { justify-content: space-between; display: flex; width: 100%; gap: 8px;}
+      #find-replace-modal .btn { flex: 1; }
+
+      #theme-colors { grid-template-columns: 1fr; }
+      #crop-stage, #crop-img { max-height: 45vh; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+    
+    <!-- File Explorer Sidebar -->
+    <aside id="sidebar" class="collapsed" aria-label="File explorer">
+      <div id="sidebar-header">
+        <i data-lucide="folder-tree" size="16" style="flex-shrink:0;"></i>
+        <span id="sidebar-title">No folder</span>
+        <button class="icon-btn" data-action="open-folder" title="Open Folder" aria-label="Open Folder"><i data-lucide="folder-open" size="16"></i></button>
+        <button class="icon-btn" data-action="toggle-sidebar" title="Hide Sidebar" aria-label="Hide Sidebar"><i data-lucide="x" size="16"></i></button>
+      </div>
+      <div id="file-tree" role="tree" aria-label="Files"></div>
+      <div id="sidebar-reconnect" style="display:none;">
+        <button class="btn btn-secondary" data-action="reconnect-folder"><i data-lucide="refresh-cw" size="14"></i> Reconnect folder</button>
+      </div>
+      <div id="sidebar-hint">Open a folder to browse files here.</div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-area">
+      <!-- Tabs -->
+      <div id="tabs-bar"></div>
+      
+      <!-- Breadcrumbs / Action Bar -->
+      <div id="breadcrumbs">
+        <div class="bc-path">
+          <button class="icon-btn" data-action="toggle-sidebar" title="Toggle Sidebar" aria-label="Toggle Sidebar" id="btn-sidebar" style="flex-shrink:0;"><i data-lucide="panel-left" size="18"></i></button>
+          <i data-lucide="file-code-2" size="18" style="flex-shrink:0;"></i>
+          <span id="bc-filename">Loading...</span>
+        </div>
+        <div class="bc-actions" id="bc-actions">
+          <button class="icon-btn" data-action="show-html-preview" title="HTML Preview" id="btn-html-preview" style="display:none;" aria-label="HTML Preview"><i data-lucide="globe" size="18"></i></button>
+          <button class="icon-btn" data-action="toggle-preview" title="Markdown Preview" id="btn-preview" style="display:none;" aria-label="Markdown Preview"><i data-lucide="layout" size="18"></i></button>
+          <button class="icon-btn" data-action="save-file" title="Save" id="btn-save" aria-label="Save"><i data-lucide="save" size="18"></i></button>
+          
+          <!-- Dropdown Edit Menu Toggle Button -->
+          <button class="icon-btn" id="btn-edit-menu" data-action="toggle-edit-menu" title="Menu Options" aria-label="Menu Options"><i data-lucide="more-vertical" size="18"></i></button>
+        </div>
+        
+        <!-- Professional Dropdown Edit Menu -->
+        <div id="edit-menu" class="dropdown-menu">
+          
+          <div class="menu-section-title">File</div>
+          <div class="menu-item" data-action="new-file"><i data-lucide="file-plus" size="16"></i> New File</div>
+          <div class="menu-item" data-action="open-file"><i data-lucide="folder-open" size="16"></i> Open File...</div>
+          <div class="menu-item" data-action="open-folder"><i data-lucide="folder-tree" size="16"></i> Open Folder...</div>
+          <div class="menu-item" data-action="open-data-url"><i data-lucide="link" size="16"></i> Open Data URL...</div>
+          <div class="menu-item" data-action="save-file"><i data-lucide="save" size="16"></i> Save</div>
+          <div class="menu-item" data-action="save-file-as"><i data-lucide="save" size="16"></i> Save File As...</div>
+          <div id="recent-files"></div>
+          
+          <div class="menu-divider"></div>
+          
+          <div class="menu-section-title">Edit</div>
+          <div class="menu-item" data-action="undo"><i data-lucide="undo" size="16"></i> Undo</div>
+          <div class="menu-item" data-action="redo"><i data-lucide="redo" size="16"></i> Redo</div>
+          <div class="menu-item" data-action="cut"><i data-lucide="scissors" size="16"></i> Cut</div>
+          <div class="menu-item" data-action="copy"><i data-lucide="copy" size="16"></i> Copy</div>
+          <div class="menu-item" data-action="paste"><i data-lucide="clipboard" size="16"></i> Paste</div>
+          <div class="menu-divider"></div>
+          <div class="menu-item" data-action="encode-base64"><i data-lucide="lock" size="16"></i> Encode Base64</div>
+          <div class="menu-item" data-action="decode-base64"><i data-lucide="unlock" size="16"></i> Decode Base64</div>
+          <div class="menu-divider"></div>
+          <div class="menu-item" data-action="find"><i data-lucide="search" size="16"></i> Find</div>
+          <div class="menu-item" data-action="replace"><i data-lucide="refresh-cw" size="16"></i> Replace</div>
+          
+          <div class="menu-divider"></div>
+          
+          <div class="menu-section-title">View & Tools</div>
+          <div class="menu-item" data-action="format-code"><i data-lucide="sparkles" size="16"></i> Format Document</div>
+          <div class="menu-item" data-action="toggle-hex"><i data-lucide="binary" size="16"></i> Toggle Hex Editor</div>
+          <div class="menu-item" data-action="toggle-preview"><i data-lucide="layout" size="16"></i> Toggle MD Preview</div>
+          <div class="menu-item" data-action="show-html-preview"><i data-lucide="globe" size="16"></i> HTML Live Preview</div>
+          <div class="menu-item" data-action="toggle-sidebar"><i data-lucide="panel-left" size="16"></i> Toggle Sidebar</div>
+          <div class="menu-item" data-action="open-palette"><i data-lucide="command" size="16"></i> Command Palette...</div>
+          <div class="menu-item" data-action="share-data-url"><i data-lucide="share-2" size="16"></i> Copy Data URL</div>
+          
+          <div class="menu-divider"></div>
+          
+          <div class="menu-section-title">Settings</div>
+          <div class="menu-item" style="padding-top: 8px; padding-bottom: 8px; cursor: default;">
+            <i data-lucide="code" size="16" style="flex-shrink: 0;"></i>
+            <select id="menu-mode-select" data-action="set-mode"></select>
+          </div>
+          
+          <div class="menu-item" style="padding-top: 8px; padding-bottom: 8px; cursor: default;">
+            <i data-lucide="palette" size="16" style="flex-shrink: 0;"></i>
+            <select id="theme-selector" data-action="set-theme">
+              <option value="dracula">Theme: Dracula</option>
+              <option value="monokai">Theme: Monokai</option>
+              <option value="github-light">Theme: Light</option>
+              <option value="eclipse">Theme: Eclipse</option>
+            </select>
+          </div>
+          <div class="menu-item" data-action="open-theme-editor"><i data-lucide="palette" size="16"></i> Theme Editor...</div>
+
+          <div class="menu-divider"></div>
+
+          <div class="menu-section-title">Editor</div>
+          <div class="menu-item" style="padding-top: 8px; padding-bottom: 8px; cursor: default;">
+            <i data-lucide="type" size="16" style="flex-shrink: 0;"></i>
+            <select data-action="set-pref" data-pref-key="fontSize">
+              <option value="12">Font: 12px</option>
+              <option value="13">Font: 13px</option>
+              <option value="14">Font: 14px</option>
+              <option value="15">Font: 15px</option>
+              <option value="16">Font: 16px</option>
+              <option value="18">Font: 18px</option>
+              <option value="20">Font: 20px</option>
+            </select>
+          </div>
+          <div class="menu-item" style="padding-top: 8px; padding-bottom: 8px; cursor: default;">
+            <i data-lucide="indent" size="16" style="flex-shrink: 0;"></i>
+            <select data-action="set-pref" data-pref-key="tabSize">
+              <option value="2">Tab size: 2</option>
+              <option value="4">Tab size: 4</option>
+              <option value="8">Tab size: 8</option>
+            </select>
+          </div>
+          <div class="menu-item" style="padding-top: 8px; padding-bottom: 8px; cursor: default;">
+            <i data-lucide="wrap-text" size="16" style="flex-shrink: 0;"></i>
+            <select data-action="set-pref" data-pref-key="lineWrapping">
+              <option value="true">Word wrap: On</option>
+              <option value="false">Word wrap: Off</option>
+            </select>
+          </div>
+          <div class="menu-item" style="padding-top: 8px; padding-bottom: 8px; cursor: default;">
+            <i data-lucide="list-ordered" size="16" style="flex-shrink: 0;"></i>
+            <select data-action="set-pref" data-pref-key="lineNumbers">
+              <option value="true">Line numbers: On</option>
+              <option value="false">Line numbers: Off</option>
+            </select>
+          </div>
+          <div class="menu-item" style="padding-top: 8px; padding-bottom: 8px; cursor: default;">
+            <i data-lucide="text-cursor" size="16" style="flex-shrink: 0;"></i>
+            <select data-action="set-pref" data-pref-key="styleActiveLine">
+              <option value="true">Active line: On</option>
+              <option value="false">Active line: Off</option>
+            </select>
+          </div>
+          <div class="menu-item" style="padding-top: 8px; padding-bottom: 8px; cursor: default;">
+            <i data-lucide="brackets" size="16" style="flex-shrink: 0;"></i>
+            <select data-action="set-pref" data-pref-key="autoCloseBrackets">
+              <option value="true">Auto-close brackets: On</option>
+              <option value="false">Auto-close brackets: Off</option>
+            </select>
+          </div>
+          <div class="menu-item" style="padding-top: 8px; padding-bottom: 8px; cursor: default;">
+            <i data-lucide="list" size="16" style="flex-shrink: 0;"></i>
+            <select data-action="set-pref" data-pref-key="foldGutter">
+              <option value="true">Code folding: On</option>
+              <option value="false">Code folding: Off</option>
+            </select>
+          </div>
+          <div class="menu-item" style="padding-top: 8px; padding-bottom: 8px; cursor: default;">
+            <i data-lucide="search" size="16" style="flex-shrink: 0;"></i>
+            <select data-action="set-pref" data-pref-key="highlightMatches">
+              <option value="true">Highlight matches: On</option>
+              <option value="false">Highlight matches: Off</option>
+            </select>
+          </div>
+          
+        </div>
+      </div>
+
+      <!-- Editor Viewport -->
+      <div id="editor-viewport">
+        <!-- Code/Markdown Split View -->
+        <div id="split-view" class="view-pane">
+          <div style="flex:1; position:relative; overflow:hidden;">
+            <textarea id="code-editor"></textarea>
+          </div>
+          <div id="md-preview" style="display:none;"></div>
+        </div>
+
+        <!-- Virtual Hex Editor - Optimized Horizontal Mobile Scroll -->
+        <div id="hex-view" class="view-pane" tabindex="0">
+          <!-- Hidden Input to trigger Mobile Virtual Soft-Keyboard in Hex View -->
+          <input type="text" id="hex-hidden-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+
+          <div id="hex-toolbar">
+            <input type="text" id="hex-search-input" placeholder="Find hex (48 65) or text…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <span id="hex-search-count"></span>
+            <button class="icon-btn" data-action="hex-search-prev" title="Previous match (Shift+Enter)" aria-label="Previous match"><i data-lucide="arrow-up" size="16"></i></button>
+            <button class="icon-btn" data-action="hex-search-next" title="Next match (Enter)" aria-label="Next match"><i data-lucide="arrow-down" size="16"></i></button>
+            <span class="adj-sep"></span>
+            <button class="icon-btn" data-action="hex-insert" title="Insert byte (Ins)" aria-label="Insert byte"><i data-lucide="plus" size="16"></i></button>
+            <button class="icon-btn" data-action="hex-delete" title="Delete byte (Del)" aria-label="Delete byte"><i data-lucide="minus" size="16"></i></button>
+          </div>
+
+          <div id="hex-scroll-x">
+            <div id="hex-view-inner">
+              <div class="hex-header">
+                <div class="h-col-offset">Offset</div>
+                <div class="h-col-hex">Hexadecimal</div>
+              </div>
+              <div id="hex-scroll-container">
+                <div id="hex-spacer"></div>
+                <div id="hex-content"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image Viewer -->
+        <div id="image-view" class="view-pane">
+          <div id="image-toolbar">
+            <button class="icon-btn" data-action="img-zoom-out" title="Zoom Out" aria-label="Zoom Out"><i data-lucide="zoom-out" size="18"></i></button>
+            <span id="image-zoom-lbl">100%</span>
+            <button class="icon-btn" data-action="img-zoom-in" title="Zoom In" aria-label="Zoom In"><i data-lucide="zoom-in" size="18"></i></button>
+            <button class="icon-btn" data-action="img-fit" title="Fit to Window" aria-label="Fit to Window"><i data-lucide="scan" size="18"></i></button>
+            <button class="icon-btn" data-action="img-actual" title="Actual Size (1:1)" aria-label="Actual Size (1:1)"><i data-lucide="expand" size="18"></i></button>
+            <span class="adj-sep"></span>
+            <button class="icon-btn" data-action="crop-open" title="Crop" aria-label="Crop"><i data-lucide="crop" size="18"></i></button>
+            <button class="icon-btn" data-action="resize-open" title="Resize" aria-label="Resize"><i data-lucide="scaling" size="18"></i></button>
+            <span id="img-meta" style="margin-left:auto; font-size:12px; color:var(--text-muted); white-space:nowrap;"></span>
+          </div>
+          <div id="image-adjust-bar">
+            <span class="adj-item" title="Brightness">B <input type="range" id="img-brightness" min="0" max="200" value="100" data-action="set-img-edit" data-edit-key="brightness"><span class="adj-val" id="img-brightness-lbl">100</span></span>
+            <span class="adj-item" title="Contrast">C <input type="range" id="img-contrast" min="0" max="200" value="100" data-action="set-img-edit" data-edit-key="contrast"><span class="adj-val" id="img-contrast-lbl">100</span></span>
+            <span class="adj-item" title="Saturation">S <input type="range" id="img-saturate" min="0" max="200" value="100" data-action="set-img-edit" data-edit-key="saturate"><span class="adj-val" id="img-saturate-lbl">100</span></span>
+            <span class="adj-item" title="JPEG / WebP save quality">Q <input type="range" id="img-quality" min="10" max="100" value="92" data-action="set-img-edit" data-edit-key="quality"><span class="adj-val" id="img-quality-lbl">92</span></span>
+            <span class="adj-sep"></span>
+            <button class="icon-btn" data-action="img-rotate" data-deg="-90" title="Rotate Left" aria-label="Rotate Left"><i data-lucide="rotate-ccw" size="16"></i></button>
+            <button class="icon-btn" data-action="img-rotate" data-deg="90" title="Rotate Right" aria-label="Rotate Right"><i data-lucide="rotate-cw" size="16"></i></button>
+            <button class="icon-btn" data-action="img-toggle-edit" data-edit-key="flipH" title="Flip Horizontal" aria-label="Flip Horizontal"><i data-lucide="flip-horizontal" size="16"></i></button>
+            <button class="icon-btn" data-action="img-toggle-edit" data-edit-key="flipV" title="Flip Vertical" aria-label="Flip Vertical"><i data-lucide="flip-vertical" size="16"></i></button>
+            <span class="adj-sep"></span>
+            <button class="fr-toggle-btn" id="img-invert" data-action="img-toggle-edit" data-edit-key="invert" title="Invert Colors" aria-label="Invert Colors">INV</button>
+            <button class="fr-toggle-btn" id="img-grayscale" data-action="img-toggle-edit" data-edit-key="grayscale" title="Grayscale" aria-label="Grayscale">GRY</button>
+            <button class="fr-toggle-btn" id="img-sepia" data-action="img-toggle-edit" data-edit-key="sepia" title="Sepia" aria-label="Sepia">SEP</button>
+            <button class="icon-btn" data-action="img-reset" title="Reset Adjustments" aria-label="Reset Adjustments"><i data-lucide="undo" size="16"></i></button>
+          </div>
+          <div id="image-canvas">
+            <img id="image-view-img" alt="Image preview" draggable="false">
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Status Bar -->
+  <footer id="status-bar">
+    <div class="sb-section">
+      <div class="sb-item"><i data-lucide="check-circle" size="14"></i> <span id="sb-status">Ready</span></div>
+    </div>
+    <div class="sb-section" id="sb-stats" style="display:flex;">
+      <div class="sb-item" id="sb-cursor">Ln 1, Col 1</div>
+      <div class="sb-item" id="sb-size">0 Bytes</div>
+      <div class="sb-item" id="sb-lang">Plain Text</div>
+      <div class="sb-item" id="sb-eol" data-action="toggle-eol" role="button" tabindex="0" title="Line ending — click to switch LF / CRLF" style="cursor:pointer;">LF</div>
+      <div class="sb-item" id="sb-hex-lbl" style="display:none;">HEX</div>
+      <div class="sb-item" id="sb-encoding" data-action="cycle-encoding" role="button" tabindex="0" title="Encoding — click to cycle UTF-8 / UTF-16" style="cursor:pointer;">UTF-8</div>
+    </div>
+  </footer>
+
+  <!-- Find & Replace Modal -->
+  <div class="overlay" id="find-replace-modal">
+    <div class="modal" style="width: 480px;">
+      <div class="modal-header">
+        <span style="display:flex; align-items:center; gap:8px;" id="fr-title"><i data-lucide="search" size="16"></i> Find & Replace</span>
+        <button class="icon-btn" data-action="close-modals"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="fr-input-wrapper">
+          <input type="text" id="find-input" placeholder="Find...">
+          <div class="fr-toggles">
+            <button class="fr-toggle-btn" id="fr-btn-case" data-action="toggle-search-opt" data-opt="case" title="Match Case" aria-label="Match Case">Aa</button>
+            <button class="fr-toggle-btn" id="fr-btn-word" data-action="toggle-search-opt" data-opt="word" title="Whole Word" aria-label="Whole Word">\b</button>
+            <button class="fr-toggle-btn" id="fr-btn-regex" data-action="toggle-search-opt" data-opt="regex" title="Use Regular Expression" aria-label="Use Regular Expression">.*</button>
+          </div>
+          <span id="fr-count" style="font-size:12px; color:var(--text-muted); padding:0 10px; white-space:nowrap;"></span>
+        </div>
+        
+        <div class="fr-input-wrapper" id="replace-wrapper">
+          <input type="text" id="replace-input" placeholder="Replace with...">
+        </div>
+        
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary" data-action="do-search" data-reverse="true" title="Find Previous" aria-label="Find Previous"><i data-lucide="arrow-up" size="16"></i></button>
+          <button class="btn btn-secondary" data-action="do-search" data-reverse="false" title="Find Next" aria-label="Find Next"><i data-lucide="arrow-down" size="16"></i></button>
+        </div>
+        <div style="display:flex; gap:8px;" id="fr-replace-actions">
+          <button class="btn btn-secondary" data-action="do-replace">Replace</button>
+          <button class="btn btn-primary" data-action="do-replace-all">Replace All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HTML Preview Modal -->
+  <div class="overlay" id="html-preview-modal">
+    <div class="modal">
+      <div class="modal-header" style="color: #000; background: #f6f8fa; border-bottom: 1px solid #d0d7de;">
+        <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="globe" size="16"></i> HTML Live Preview</span>
+        <div style="display:flex; gap:8px;">
+          <button class="icon-btn" data-action="toggle-fullscreen-preview" title="Toggle Fullscreen" style="color: #57606a;" aria-label="Toggle Fullscreen"><i data-lucide="maximize" size="18"></i></button>
+          <button class="icon-btn" data-action="close-modals" style="color: #57606a;"><i data-lucide="x" size="18"></i></button>
+        </div>
+      </div>
+      <div class="modal-body" style="padding:0; flex:1; display:flex;">
+        <iframe id="html-preview-frame" style="flex:1; border:none; width:100%; height: 100%; background:white;" sandbox="allow-scripts allow-modals"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data URL Modal -->
+  <div class="overlay" id="data-url-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="link" size="16"></i> Open Data URL</span>
+        <button class="icon-btn" data-action="close-modals"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <label style="font-size:12px; color:var(--text-muted); margin-bottom:8px; display:block;">Paste your Data URL</label>
+          <textarea id="data-url-input" class="input-field" placeholder="data:text/html;charset=utf-8;base64,..." style="height: 100px; resize: none;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-action="close-modals">Cancel</button>
+        <button class="btn btn-primary" data-action="process-data-url">Open Link</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Modal -->
+  <div class="overlay" id="save-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span>Save File</span>
+        <button class="icon-btn" data-action="close-modals"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <label style="font-size:12px; color:var(--text-muted); margin-bottom:8px; display:block;">File Name</label>
+          <input type="text" id="save-filename" class="input-field" placeholder="document">
+        </div>
+        <div>
+          <label style="font-size:12px; color:var(--text-muted); margin-bottom:8px; display:block;">Extension</label>
+          <select id="save-ext" class="input-field"></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-action="close-modals">Cancel</button>
+        <button class="btn btn-primary" data-action="execute-save">Save to Disk</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Command Palette -->
+  <div class="overlay" id="palette-modal" style="align-items: flex-start;">
+    <div class="modal" style="width: 560px; max-width: 100%; margin-top: 10vh;">
+      <div class="modal-body" style="padding: 12px; gap: 10px;">
+        <input type="text" id="palette-input" class="input-field" placeholder="Type a command…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div id="palette-list" style="max-height: 50vh; overflow: auto; display: flex; flex-direction: column; gap: 2px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme Editor -->
+  <div class="overlay" id="theme-modal">
+    <div class="modal" style="width: 560px; max-width: 100%;">
+      <div class="modal-header">
+        <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="palette" size="16"></i> Theme Editor</span>
+        <button class="icon-btn" data-action="close-modals" aria-label="Close"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body" style="gap: 12px;">
+        <div>
+          <label class="field-label">Saved themes</label>
+          <div style="display:flex; gap:8px;">
+            <select id="theme-saved" class="input-field" style="flex:1;"></select>
+            <button class="btn btn-secondary" data-action="theme-load">Load</button>
+            <button class="btn btn-secondary" data-action="theme-delete">Delete</button>
+          </div>
+        </div>
+        <div>
+          <label class="field-label">Base syntax colors</label>
+          <select id="theme-base" class="input-field">
+            <option value="dracula">Dracula (dark syntax)</option>
+            <option value="monokai">Monokai (dark syntax)</option>
+            <option value="default">Light syntax</option>
+            <option value="eclipse">Eclipse (light syntax)</option>
+          </select>
+        </div>
+        <div id="theme-colors" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;"></div>
+        <div>
+          <label class="field-label">Theme name</label>
+          <input id="theme-name" class="input-field" placeholder="My Theme">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-action="close-modals">Close</button>
+        <button class="btn btn-primary" data-action="theme-save">Save &amp; Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crop Image -->
+  <div class="overlay" id="crop-modal">
+    <div class="modal" style="width: 680px; max-width: 100%;">
+      <div class="modal-header">
+        <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="crop" size="16"></i> Crop Image</span>
+        <button class="icon-btn" data-action="close-modals" aria-label="Close"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 12px; gap: 8px;">
+        <div id="crop-stage">
+          <img id="crop-img" alt="Crop preview" draggable="false">
+          <div id="crop-selection">
+            <span class="crop-handle" data-handle="nw"></span>
+            <span class="crop-handle" data-handle="ne"></span>
+            <span class="crop-handle" data-handle="sw"></span>
+            <span class="crop-handle" data-handle="se"></span>
+          </div>
+        </div>
+        <div id="crop-info" style="font-size:12px; color:var(--text-muted);"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-action="crop-reset">Reset</button>
+        <button class="btn btn-secondary" data-action="close-modals">Cancel</button>
+        <button class="btn btn-primary" data-action="crop-apply">Apply Crop</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resize Image -->
+  <div class="overlay" id="resize-modal">
+    <div class="modal" style="width: 420px; max-width: 100%;">
+      <div class="modal-header">
+        <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="scaling" size="16"></i> Resize Image</span>
+        <button class="icon-btn" data-action="close-modals" aria-label="Close"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body" style="gap: 12px;">
+        <div>
+          <label class="field-label">Width (px)</label>
+          <input type="number" id="resize-width" class="input-field" min="1" step="1">
+        </div>
+        <div>
+          <label class="field-label">Height (px)</label>
+          <input type="number" id="resize-height" class="input-field" min="1" step="1">
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted);">
+          <input type="checkbox" id="resize-lock" checked> Keep aspect ratio
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-action="close-modals">Cancel</button>
+        <button class="btn btn-primary" data-action="resize-apply">Apply Resize</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drag & Drop Overlay -->
+  <div id="drop-zone">
+    <i data-lucide="file-down" size="72" style="margin-bottom: 20px;"></i>
+    Drop files to open
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script>
+    /**
+     * JustEdit Pro - Application Core
+     * Optimized for Desktop & Mobile Touch
+     */
+    const App = (function() {
+      // --- State ---
+      const DEFAULT_PREFS = {
+        fontSize: 14,
+        tabSize: 2,
+        lineWrapping: true,
+        lineNumbers: true,
+        styleActiveLine: true,
+        autoCloseBrackets: true,
+        foldGutter: true,
+        highlightMatches: true
+      };
+      const state = {
+        tabs: [],
+        activeId: null,
+        theme: 'dracula',
+        prefs: { ...DEFAULT_PREFS },
+        customThemes: {}
+      };
+
+      // --- Mappings ---
+      const MODES = {
+        'html': 'htmlmixed', 'htm': 'htmlmixed', 'js': 'javascript', 'mjs': 'javascript', 'json': 'application/json',
+        'ts': 'text/typescript', 'css': 'css', 'scss': 'text/x-scss', 'less': 'text/x-less', 'py': 'python',
+        'md': 'markdown', 'cpp': 'text/x-c++src', 'cc': 'text/x-c++src', 'cxx': 'text/x-c++src',
+        'c': 'text/x-csrc', 'cs': 'text/x-csharp', 'java': 'text/x-java', 'go': 'go', 'rs': 'rust',
+        'rb': 'ruby', 'sh': 'shell', 'bash': 'shell', 'yaml': 'yaml', 'yml': 'yaml', 'php': 'php', 'sql': 'sql', 'txt': 'text/plain',
+        'pl': 'perl', 'lua': 'lua', 'r': 'r', 'dart': 'dart', 'swift': 'swift', 'vue': 'vue',
+        'dockerfile': 'dockerfile', 'conf': 'nginx', 'toml': 'toml', 'properties': 'properties', 'ini': 'properties', 'xml': 'xml',
+        'kt': 'text/x-kotlin', 'kts': 'text/x-kotlin', 'scala': 'text/x-scala', 'sc': 'text/x-scala',
+        'm': 'text/x-objectivec', 'mm': 'text/x-objectivec', 'diff': 'diff', 'patch': 'diff',
+        'ps1': 'application/x-powershell', 'psm1': 'application/x-powershell', 'psd1': 'application/x-powershell',
+        'cmake': 'text/x-cmake', 'tex': 'text/x-stex', 'sty': 'text/x-stex', 'hs': 'text/x-haskell', 'lhs': 'text/x-haskell',
+        'groovy': 'text/x-groovy', 'gvy': 'text/x-groovy', 'gradle': 'text/x-groovy', 'jl': 'text/x-julia',
+        'cr': 'text/x-crystal', 'vb': 'text/x-vb', 'vbs': 'text/x-vb', 'pas': 'text/x-pascal', 'pp': 'text/x-pascal',
+        'coffee': 'text/x-coffeescript', 's': 'gas', 'asm': 'gas'
+      };
+      const EXT_TO_MIME = {
+        'htmlmixed': '.html', 'javascript': '.js', 'application/json': '.json', 'css': '.css',
+        'text/x-scss': '.scss', 'text/x-less': '.less', 'markdown': '.md', 'python': '.py',
+        'text/plain': '.txt', 'rust': '.rs', 'go': '.go', 'text/x-java': '.java',
+        'text/x-csrc': '.c', 'text/x-c++src': '.cpp', 'text/x-csharp': '.cs',
+        'text/typescript': '.ts', 'php': '.php', 'ruby': '.rb', 'shell': '.sh', 'sql': '.sql',
+        'xml': '.xml', 'yaml': '.yaml', 'toml': '.toml', 'properties': '.ini', 'lua': '.lua',
+        'perl': '.pl', 'r': '.r', 'dart': '.dart', 'swift': '.swift', 'vue': '.vue',
+        'text/x-kotlin': '.kt', 'text/x-scala': '.scala', 'text/x-objectivec': '.m',
+        'diff': '.diff', 'application/x-powershell': '.ps1', 'text/x-cmake': '.cmake',
+        'text/x-stex': '.tex', 'text/x-haskell': '.hs', 'text/x-groovy': '.groovy',
+        'text/x-julia': '.jl', 'text/x-crystal': '.cr', 'text/x-vb': '.vb',
+        'text/x-pascal': '.pas', 'text/x-coffeescript': '.coffee', 'gas': '.s', 'nginx': '.conf'
+      };
+      const BINARY_EXTS = ['bin','exe','dll','so','png','jpg','jpeg','gif','pdf','zip','tar','gz','iso','mp3','mp4'];
+      const IMAGE_EXTS = ['png','jpg','jpeg','gif','bmp','webp','svg','ico','avif'];
+      const IMAGE_MIMES = {
+        'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'gif': 'image/gif',
+        'bmp': 'image/bmp', 'webp': 'image/webp', 'svg': 'image/svg+xml', 'ico': 'image/x-icon', 'avif': 'image/avif'
+      };
+
+      // Single source of truth for the language-mode dropdown (value, label)
+      const MODE_OPTIONS = [
+        ['text/plain', 'Plain Text'], ['gas', 'Assembly'], ['text/x-csrc', 'C'],
+        ['text/x-c++src', 'C++'], ['text/x-csharp', 'C#'], ['text/x-cmake', 'CMake'],
+        ['text/x-coffeescript', 'CoffeeScript'], ['text/x-crystal', 'Crystal'], ['css', 'CSS'],
+        ['dart', 'Dart'], ['diff', 'Diff / Patch'], ['dockerfile', 'Dockerfile'], ['go', 'Go'],
+        ['text/x-groovy', 'Groovy'], ['text/x-haskell', 'Haskell'], ['htmlmixed', 'HTML'],
+        ['text/x-java', 'Java'], ['javascript', 'JavaScript'], ['application/json', 'JSON'],
+        ['text/x-julia', 'Julia'], ['text/x-kotlin', 'Kotlin'], ['text/x-stex', 'LaTeX'],
+        ['text/x-less', 'LESS'], ['lua', 'Lua'], ['markdown', 'Markdown'], ['nginx', 'NGINX'],
+        ['text/x-objectivec', 'Objective-C'], ['text/x-pascal', 'Pascal'], ['perl', 'Perl'],
+        ['php', 'PHP'], ['application/x-powershell', 'PowerShell'], ['properties', 'Properties / INI'],
+        ['python', 'Python'], ['r', 'R'], ['ruby', 'Ruby'], ['rust', 'Rust'],
+        ['text/x-scala', 'Scala'], ['text/x-scss', 'SCSS'], ['shell', 'Shell / Bash'],
+        ['sql', 'SQL'], ['swift', 'Swift'], ['toml', 'TOML'], ['text/typescript', 'TypeScript'],
+        ['text/x-vb', 'VB.NET'], ['vue', 'Vue'], ['xml', 'XML'], ['yaml', 'YAML']
+      ];
+
+      // Single source of truth for the save-extension dropdown (value, label)
+      const SAVE_EXT_OPTIONS = [
+        ['custom', '* Keep as typed above'], ['.bin', '.bin (Binary)'], ['.bmp', '.bmp (BMP image)'],
+        ['.c', '.c (C)'], ['.cmake', '.cmake (CMake)'], ['.coffee', '.coffee (CoffeeScript)'],
+        ['.conf', '.conf (Config)'], ['.cpp', '.cpp (C++)'], ['.cr', '.cr (Crystal)'], ['.cs', '.cs (C#)'],
+        ['.css', '.css (CSS)'], ['.dart', '.dart (Dart)'], ['.diff', '.diff (Diff)'], ['.go', '.go (Go)'],
+        ['.groovy', '.groovy (Groovy)'], ['.hs', '.hs (Haskell)'], ['.html', '.html (HTML)'],
+        ['.ini', '.ini (INI)'], ['.java', '.java (Java)'], ['.jl', '.jl (Julia)'], ['.js', '.js (JavaScript)'],
+        ['.json', '.json (JSON)'], ['.jpg', '.jpg (JPEG image)'], ['.kt', '.kt (Kotlin)'],
+        ['.less', '.less (LESS)'], ['.lua', '.lua (Lua)'], ['.m', '.m (Objective-C)'], ['.md', '.md (Markdown)'],
+        ['.pas', '.pas (Pascal)'], ['.php', '.php (PHP)'], ['.pl', '.pl (Perl)'], ['.png', '.png (PNG image)'],
+        ['.ps1', '.ps1 (PowerShell)'], ['.py', '.py (Python)'], ['.r', '.r (R)'], ['.rb', '.rb (Ruby)'],
+        ['.rs', '.rs (Rust)'], ['.s', '.s (Assembly)'], ['.scala', '.scala (Scala)'], ['.scss', '.scss (SCSS)'],
+        ['.sh', '.sh (Shell)'], ['.sql', '.sql (SQL)'], ['.swift', '.swift (Swift)'], ['.tex', '.tex (LaTeX)'],
+        ['.toml', '.toml (TOML)'], ['.ts', '.ts (TypeScript)'], ['.txt', '.txt (Text)'], ['.vb', '.vb (VB.NET)'],
+        ['.vue', '.vue (Vue)'], ['.webp', '.webp (WebP image)'], ['.xml', '.xml (XML)'], ['.yaml', '.yaml (YAML)']
+      ];
+
+      function populateSelect(selectEl, options) {
+        if (!selectEl) return;
+        selectEl.replaceChildren(...options.map(([value, label]) => {
+          const opt = document.createElement('option');
+          opt.value = value;
+          opt.textContent = label;
+          return opt;
+        }));
+      }
+
+      function populateSelects() {
+        populateSelect(document.getElementById('menu-mode-select'), MODE_OPTIONS);
+        populateSelect(document.getElementById('save-ext'), SAVE_EXT_OPTIONS);
+      }
+
+      // --- Editor Preferences ---
+      const MODE_LABELS = Object.fromEntries(MODE_OPTIONS.map(([value, label]) => [value, label]));
+      const languageLabel = mode => MODE_LABELS[mode] || 'Plain Text';
+
+      function detectEol(text) {
+        if (text == null) return 'LF';
+        if (text.indexOf('\r\n') !== -1) return 'CRLF';
+        if (text.indexOf('\r') !== -1) return 'CR';
+        return 'LF';
+      }
+
+      function eolSeparator(eol) {
+        return eol === 'CRLF' ? '\r\n' : eol === 'CR' ? '\r' : '\n';
+      }
+
+      // --- Text encodings ---
+      const ENCODINGS = ['UTF-8', 'UTF-16LE', 'UTF-16BE'];
+      const BOM_BYTES = {
+        'UTF-8': [0xEF, 0xBB, 0xBF],
+        'UTF-16LE': [0xFF, 0xFE],
+        'UTF-16BE': [0xFE, 0xFF]
+      };
+
+      function detectEncoding(bytes) {
+        if (bytes && bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) return { encoding: 'UTF-8', bom: true };
+        if (bytes && bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xFE) return { encoding: 'UTF-16LE', bom: true };
+        if (bytes && bytes.length >= 2 && bytes[0] === 0xFE && bytes[1] === 0xFF) return { encoding: 'UTF-16BE', bom: true };
+        // Heuristic: alternating NUL bytes indicate UTF-16 without a BOM
+        if (bytes && bytes.length >= 4) {
+          const n = Math.min(bytes.length, 1024);
+          let evenNul = 0, oddNul = 0;
+          for (let i = 0; i < n; i++) { if (bytes[i] === 0) { (i % 2 === 0) ? evenNul++ : oddNul++; } }
+          if (oddNul > n / 4 && evenNul === 0) return { encoding: 'UTF-16LE', bom: false };
+          if (evenNul > n / 4 && oddNul === 0) return { encoding: 'UTF-16BE', bom: false };
+        }
+        return { encoding: 'UTF-8', bom: false };
+      }
+
+      function decodeBytes(bytes, encoding = 'UTF-8', bom = false) {
+        let body = bytes;
+        if (bom) {
+          const b = BOM_BYTES[encoding];
+          if (b && bytes.length >= b.length) body = bytes.subarray(b.length);
+        }
+        if (encoding === 'UTF-16LE') return new TextDecoder('utf-16le', { fatal: false }).decode(body);
+        if (encoding === 'UTF-16BE') return new TextDecoder('utf-16be', { fatal: false }).decode(body);
+        return new TextDecoder('utf-8', { fatal: false }).decode(body);
+      }
+
+      function encodeText(str, encoding) {
+        if (encoding === 'UTF-16LE' || encoding === 'UTF-16BE') {
+          const le = encoding === 'UTF-16LE';
+          const out = new Uint8Array(str.length * 2);
+          for (let i = 0; i < str.length; i++) {
+            const c = str.charCodeAt(i);
+            if (le) { out[i * 2] = c & 0xFF; out[i * 2 + 1] = c >> 8; }
+            else { out[i * 2] = c >> 8; out[i * 2 + 1] = c & 0xFF; }
+          }
+          return out;
+        }
+        return new TextEncoder().encode(str);
+      }
+
+      // Encode text to bytes after normalizing to the tab's line ending and encoding.
+      function encodeContent(text, eol = 'LF', encoding = 'UTF-8', bom = false) {
+        const normalized = String(text == null ? '' : text).replace(/\r\n|\r|\n/g, '\n');
+        const sep = eolSeparator(eol);
+        const withEol = sep === '\n' ? normalized : normalized.replace(/\n/g, sep);
+        const body = encodeText(withEol, encoding);
+        if (!bom) return body;
+        const b = BOM_BYTES[encoding];
+        if (!b) return body;
+        const out = new Uint8Array(b.length + body.length);
+        out.set(b, 0);
+        out.set(body, b.length);
+        return out;
+      }
+
+      function buildGutters() {
+        const gutters = [];
+        if (state.prefs.lineNumbers) gutters.push('CodeMirror-linenumbers');
+        if (state.prefs.foldGutter) gutters.push('CodeMirror-foldgutter');
+        return gutters;
+      }
+
+      function applyPrefs() {
+        const p = state.prefs;
+        document.documentElement.style.setProperty('--app-font-size', p.fontSize + 'px');
+        if (!cmEditor) return;
+        cmEditor.setOption('lineWrapping', !!p.lineWrapping);
+        cmEditor.setOption('tabSize', Number(p.tabSize));
+        cmEditor.setOption('indentUnit', Number(p.tabSize));
+        cmEditor.setOption('lineNumbers', !!p.lineNumbers);
+        cmEditor.setOption('styleActiveLine', !!p.styleActiveLine);
+        cmEditor.setOption('autoCloseBrackets', !!p.autoCloseBrackets);
+        cmEditor.setOption('foldGutter', !!p.foldGutter);
+        cmEditor.setOption('gutters', buildGutters());
+        cmEditor.refresh();
+      }
+
+      function syncPrefControls() {
+        document.querySelectorAll('[data-action="set-pref"]').forEach(sel => {
+          const key = sel.dataset.prefKey;
+          if (key in state.prefs) sel.value = String(state.prefs[key]);
+        });
+      }
+
+      function setPref(key, value) {
+        if (!(key in state.prefs)) return;
+        state.prefs[key] = (typeof state.prefs[key] === 'boolean') ? (value === 'true') : Number(value);
+        applyPrefs();
+        if (key === 'highlightMatches') EditorActions.updateMatchHighlights();
+        Storage.save();
+      }
+
+      function setEol(eol) {
+        const tab = getActiveTab();
+        if (!tab || tab.isHex || tab.isImage) return;
+        tab.eol = eol;
+        tab.bytesDirty = true;
+        tab.isDirty = true;
+        syncTabBytes(tab); // regenerate bytes with the new line ending
+        UI.renderTabs();
+        UI.updateStatusBar();
+        Storage.debouncedSave();
+      }
+
+      function toggleEol() {
+        const tab = getActiveTab();
+        if (!tab || tab.isHex || tab.isImage) return;
+        setEol(tab.eol === 'CRLF' ? 'LF' : 'CRLF');
+      }
+
+      function cycleEncoding() {
+        const tab = getActiveTab();
+        if (!tab || tab.isHex || tab.isImage) return;
+        const cur = tab.encoding || 'UTF-8';
+        tab.encoding = ENCODINGS[(ENCODINGS.indexOf(cur) + 1) % ENCODINGS.length];
+        tab.bytesDirty = true;
+        tab.isDirty = true;
+        syncTabBytes(tab);
+        UI.renderTabs();
+        UI.updateStatusBar();
+        Storage.debouncedSave();
+        UI.toast('Encoding: ' + tab.encoding + (tab.bom ? ' (BOM)' : ''));
+      }
+
+      // --- Core Instances ---
+      let cmEditor = null;
+
+      // --- Hex Editor State ---
+      const hexState = {
+        rowHeight: 56, // Each 16-byte row group takes 56px total height
+        visibleRows: 0,
+        data: new Uint8Array(0),
+        scrollTop: 0,
+        selectedIndex: -1,
+        selEnd: -1,          // inclusive end of the highlighted range (== selectedIndex for a single byte)
+        editNibble: 0, // 0=High, 1=Low
+        lastStart: -1,
+        lastEnd: -1,
+        lastLen: -1,
+        searchMatches: [],
+        searchIndex: -1,
+        searchTimer: null
+      };
+
+      // --- Initialization ---
+      async function init() {
+        populateSelects();
+        lucide.createIcons();
+        initCodeMirror();
+        initEventListeners();
+        await Storage.load();
+        Sidebar.restore();
+        renderRecents();
+      }
+
+      function initCodeMirror() {
+        const p = state.prefs;
+        cmEditor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+          lineNumbers: !!p.lineNumbers,
+          theme: state.theme === 'github-light' ? 'default' : state.theme,
+          mode: 'text/plain',
+          autoCloseBrackets: !!p.autoCloseBrackets,
+          matchBrackets: true,
+          foldGutter: !!p.foldGutter,
+          gutters: buildGutters(),
+          lineWrapping: !!p.lineWrapping,
+          styleActiveLine: !!p.styleActiveLine,
+          indentUnit: Number(p.tabSize),
+          tabSize: Number(p.tabSize)
+        });
+        applyPrefs();
+
+        cmEditor.on('change', (cm, change) => {
+          if (change.origin === 'setValue') return;
+          const tab = getActiveTab();
+          if (tab && !tab.isHex && !tab.isImage) {
+            tab.isDirty = true;
+            tab.content = cm.getValue();
+            tab.bytesDirty = true;
+            UI.renderTabs();
+            if(tab.isPreviewOpen) updateMarkdownPreview();
+          }
+          UI.updateStatusBar();
+          Storage.debouncedSave();
+          if (document.getElementById('find-replace-modal').classList.contains('active')) {
+            EditorActions.scheduleHighlight();
+          }
+        });
+
+        cmEditor.on('cursorActivity', () => {
+          UI.updateStatusBar();
+          EditorActions.updateMatchCount();
+        });
+      }
+      
+      function syncTabBytes(tab) {
+        if(tab && tab.bytesDirty) {
+          tab.bytes = encodeContent(tab.content, tab.eol, tab.encoding, tab.bom);
+          tab.bytesDirty = false;
+        }
+      }
+
+      function initEventListeners() {
+        // Global error surfacing — keep unexpected failures visible instead of silent.
+        let lastErrorToast = 0;
+        const reportError = (prefix, detail) => {
+          console.error('[JustEdit]', prefix, detail);
+          const now = Date.now();
+          if (now - lastErrorToast > 3000 && typeof UI !== 'undefined' && UI.toast) {
+            lastErrorToast = now;
+            UI.toast(prefix + ': ' + detail, 'error');
+          }
+        };
+        window.addEventListener('error', e => {
+          reportError('Something went wrong', (e.error && e.error.message) || e.message || 'unknown error');
+        });
+        window.addEventListener('unhandledrejection', e => {
+          const reason = e.reason;
+          reportError('Operation failed', (reason && reason.message) || String(reason || 'unknown error'));
+        });
+
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', e => {
+          if (e.key === 'Escape') {
+            const menu = document.getElementById('edit-menu');
+            if (menu && menu.classList.contains('active')) {
+              menu.classList.remove('active');
+              return;
+            }
+            if (document.querySelector('.overlay.active')) UI.closeModals();
+            return;
+          }
+          if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-action="toggle-eol"], [data-action="cycle-encoding"]')) {
+            e.preventDefault();
+            if (e.target.closest('[data-action="toggle-eol"]')) toggleEol(); else cycleEncoding();
+            return;
+          }
+          if (e.ctrlKey || e.metaKey) {
+            switch (e.key.toLowerCase()) {
+              case 's': e.preventDefault(); saveFile(); break;
+              case 'o': e.preventDefault(); openFile(); break;
+              case 'n': e.preventDefault(); createTab(); break;
+              case 'w': e.preventDefault(); closeTab(state.activeId); break;
+              case 'f': e.preventDefault(); EditorActions.showFindReplace(false); break;
+              case 'h': e.preventDefault(); EditorActions.showFindReplace(true); break;
+              case 'p': if (e.shiftKey) { e.preventDefault(); Palette.open(); } break;
+            }
+          }
+        });
+        
+        document.getElementById('find-input').addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            EditorActions.doSearch(e.shiftKey);
+          }
+        });
+        document.getElementById('find-input').addEventListener('input', () => {
+          EditorActions.scheduleHighlight();
+        });
+        
+        document.getElementById('replace-input').addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            EditorActions.doReplace(); 
+          }
+        });
+
+        window.addEventListener('resize', () => {
+          if (cmEditor) cmEditor.refresh();
+          if (getActiveTab()?.isHex) Hex.renderViewport();
+        });
+
+        // Persist the session immediately when the page is hidden/closed, so unsaved
+        // tabs survive a reload even within the debounce window (Notepad++-style)
+        window.addEventListener('pagehide', () => Storage.save());
+        // Only block navigation when session persistence actually failed (e.g. quota
+        // exceeded) and there is unsaved work that would otherwise be lost.
+        window.addEventListener('beforeunload', e => {
+          Storage.save();
+          if (Storage.failed && state.tabs.some(t => t.isDirty)) {
+            e.preventDefault();
+            e.returnValue = '';
+          }
+        });
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'hidden') Storage.save();
+        });
+
+        document.addEventListener('click', e => {
+          const menu = document.getElementById('edit-menu');
+          const btn = document.getElementById('btn-edit-menu');
+          if (menu && menu.classList.contains('active') && !menu.contains(e.target) && !btn.contains(e.target)) {
+            menu.classList.remove('active');
+          }
+        });
+
+        const dropZone = document.getElementById('drop-zone');
+        window.addEventListener('dragenter', e => { e.preventDefault(); dropZone.classList.add('active'); });
+        window.addEventListener('dragleave', e => { e.preventDefault(); if(!e.relatedTarget) dropZone.classList.remove('active'); });
+        window.addEventListener('dragover', e => e.preventDefault());
+        window.addEventListener('drop', async e => {
+          e.preventDefault();
+          dropZone.classList.remove('active');
+          if(e.dataTransfer.files.length) {
+            for(let f of e.dataTransfer.files) await handleFileDrop(f);
+          }
+        });
+
+        const hexScroll = document.getElementById('hex-scroll-container');
+        let isScrolling = false;
+        hexScroll.addEventListener('scroll', () => {
+          if (!isScrolling) {
+            window.requestAnimationFrame(() => {
+              hexState.scrollTop = hexScroll.scrollTop;
+              Hex.renderViewport();
+              isScrolling = false;
+            });
+            isScrolling = true;
+          }
+        });
+
+        const hexInput = document.getElementById('hex-hidden-input');
+        hexInput.addEventListener('keydown', e => Hex.handleKey(e));
+        hexInput.addEventListener('input', e => {
+          if(e.data) {
+            for(let char of e.data) Hex.handleKey({ key: char, preventDefault: ()=>{} });
+          }
+          hexInput.value = '';
+        });
+
+        const hexSearch = document.getElementById('hex-search-input');
+        if (hexSearch) {
+          hexSearch.addEventListener('input', () => {
+            clearTimeout(hexState.searchTimer);
+            hexState.searchTimer = setTimeout(() => Hex.runSearch(), 200);
+          });
+          hexSearch.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              Hex.searchNext(e.shiftKey ? -1 : 1);
+            }
+          });
+        }
+
+        // Command palette listeners
+        const paletteInput = document.getElementById('palette-input');
+        paletteInput.addEventListener('input', () => Palette.render(paletteInput.value));
+        paletteInput.addEventListener('keydown', e => {
+          if (e.key === 'ArrowDown') { e.preventDefault(); Palette.move(1); }
+          else if (e.key === 'ArrowUp') { e.preventDefault(); Palette.move(-1); }
+          else if (e.key === 'Enter') { e.preventDefault(); Palette.run(); }
+        });
+        document.getElementById('palette-list').addEventListener('click', e => {
+          const el = e.target.closest('[data-palette-index]');
+          if (el) Palette.run(Number(el.dataset.paletteIndex));
+        });
+
+        // Theme editor base-theme preview
+        document.getElementById('theme-base').addEventListener('change', () => ThemeEditor.preview());
+
+        // Resize aspect-lock
+        const rw = document.getElementById('resize-width');
+        const rh = document.getElementById('resize-height');
+        const rlock = document.getElementById('resize-lock');
+        rw.addEventListener('input', () => {
+          if (rlock.checked && ImageResize.ratio) rh.value = Math.max(1, Math.round((parseInt(rw.value, 10) || 0) / ImageResize.ratio));
+        });
+        rh.addEventListener('input', () => {
+          if (rlock.checked && ImageResize.ratio) rw.value = Math.max(1, Math.round((parseInt(rh.value, 10) || 0) * ImageResize.ratio));
+        });
+
+        // Crop selection interactions (bind once)
+        Crop.bind();
+
+        if (window.ResizeObserver) {
+          new ResizeObserver(() => {
+            if(getActiveTab()?.isHex) Hex.renderViewport();
+          }).observe(hexScroll);
+        }
+
+        // Delegated event handling — replaces all inline onclick/oninput/onchange
+        // attributes so the document can run under a Content-Security-Policy.
+        document.addEventListener('click', e => {
+          const el = e.target.closest('[data-action]');
+          if (!el || el.matches('input, select, textarea')) return;
+          dispatchAction(el, e);
+        });
+        document.addEventListener('input', e => {
+          const el = e.target.closest('[data-action="set-img-edit"]');
+          if (el) dispatchAction(el, e);
+        });
+        document.addEventListener('change', e => {
+          const el = e.target.closest('[data-action="set-mode"], [data-action="set-theme"], [data-action="set-pref"]');
+          if (el) dispatchAction(el, e);
+        });
+      }
+
+      function dispatchAction(el, e) {
+        switch (el.dataset.action) {
+          case 'toggle-edit-menu': UI.toggleEditMenu(e); break;
+          case 'close-modals': UI.closeModals(); break;
+          case 'new-file': createTab(); EditorActions.closeMenu(); break;
+          case 'open-file': openFile(); EditorActions.closeMenu(); break;
+          case 'open-folder': openFolder(); break;
+          case 'open-data-url': openDataUrl(); EditorActions.closeMenu(); break;
+          case 'save-file': saveFile(); EditorActions.closeMenu(); break;
+          case 'save-file-as': saveFile(true); EditorActions.closeMenu(); break;
+          case 'toggle-sidebar': Sidebar.toggle(); EditorActions.closeMenu(); break;
+          case 'reconnect-folder': reconnectFolder(); break;
+          case 'open-recent': openRecent(el.dataset.recentKey); break;
+          case 'tree-row': Sidebar.onRowClick(el.dataset.treeId); break;
+          case 'format-code': formatCode(); EditorActions.closeMenu(); break;
+          case 'toggle-hex': toggleHex(); EditorActions.closeMenu(); break;
+          case 'toggle-preview': togglePreview(); EditorActions.closeMenu(); break;
+          case 'show-html-preview': showHtmlPreview(); EditorActions.closeMenu(); break;
+          case 'toggle-fullscreen-preview': toggleFullscreenPreview(); break;
+          case 'share-data-url': shareDataUrl(); EditorActions.closeMenu(); break;
+          case 'undo': EditorActions.undo(); break;
+          case 'redo': EditorActions.redo(); break;
+          case 'cut': EditorActions.cut(); break;
+          case 'copy': EditorActions.copy(); break;
+          case 'paste': EditorActions.paste(); break;
+          case 'encode-base64': EditorActions.encodeBase64(); break;
+          case 'decode-base64': EditorActions.decodeBase64(); break;
+          case 'find': EditorActions.showFindReplace(false); break;
+          case 'replace': EditorActions.showFindReplace(true); break;
+          case 'toggle-search-opt': EditorActions.toggleSearchOpt(el.dataset.opt); break;
+          case 'do-search': EditorActions.doSearch(el.dataset.reverse === 'true'); break;
+          case 'do-replace': EditorActions.doReplace(); break;
+          case 'do-replace-all': EditorActions.doReplaceAll(); break;
+          case 'execute-save': executeSave(); break;
+          case 'process-data-url': processDataUrl(); break;
+          case 'switch-tab': switchTab(el.dataset.tabId); break;
+          case 'close-tab': closeTab(el.dataset.tabId); break;
+          case 'select-hex': Hex.select(Number(el.dataset.idx)); break;
+          case 'hex-search-prev': Hex.searchNext(-1); break;
+          case 'hex-search-next': Hex.searchNext(1); break;
+          case 'hex-insert': Hex.insertByte(); break;
+          case 'hex-delete': Hex.deleteByte(); break;
+          case 'img-zoom-in': ImageViewer.zoomIn(); break;
+          case 'img-zoom-out': ImageViewer.zoomOut(); break;
+          case 'img-fit': ImageViewer.fit(); break;
+          case 'img-actual': ImageViewer.actual(); break;
+          case 'img-reset': ImageViewer.resetEdits(); break;
+          case 'img-rotate': ImageViewer.rotateBy(Number(el.dataset.deg)); break;
+          case 'img-toggle-edit': ImageViewer.toggleEdit(el.dataset.editKey); break;
+          case 'crop-open': Crop.open(); break;
+          case 'resize-open': ImageResize.open(); break;
+          case 'set-img-edit': ImageViewer.setEdit(el.dataset.editKey, Number(el.value)); break;
+          case 'set-mode': setMode(el.value); EditorActions.closeMenu(); break;
+          case 'set-theme': UI.setTheme(el.value); EditorActions.closeMenu(); break;
+          case 'set-pref': setPref(el.dataset.prefKey, el.value); break;
+          case 'toggle-eol': toggleEol(); break;
+          case 'cycle-encoding': cycleEncoding(); break;
+          case 'open-palette': Palette.open(); EditorActions.closeMenu(); break;
+          case 'open-theme-editor': openThemeEditor(); EditorActions.closeMenu(); break;
+          case 'theme-load': ThemeEditor.loadSaved(); break;
+          case 'theme-delete': ThemeEditor.remove(); break;
+          case 'theme-save': ThemeEditor.save(); break;
+          case 'crop-reset': Crop.reset(); break;
+          case 'crop-apply': Crop.apply(); break;
+          case 'resize-apply': ImageResize.apply(); break;
+          default: break;
+        }
+      }
+      
+      function setMode(mode) {
+        const tab = getActiveTab();
+        if (tab) {
+          tab.mode = mode;
+          if (!tab.isHex && cmEditor) {
+            cmEditor.setOption('mode', mode);
+          }
+          Storage.debouncedSave();
+          
+          document.getElementById('btn-preview').style.display = tab.mode === 'markdown' ? 'flex' : 'none';
+          document.getElementById('btn-html-preview').style.display = tab.mode === 'htmlmixed' ? 'flex' : 'none';
+          
+          if (tab.isPreviewOpen && tab.mode !== 'markdown') {
+              tab.isPreviewOpen = false;
+              document.getElementById('md-preview').style.display = 'none';
+          }
+          
+          UI.updateStatusBar();
+        }
+      }
+
+      const EditorActions = {
+        searchOpts: { case: false, word: false, regex: false },
+        matchMarks: [],
+        matchRanges: [],
+        matchTotal: 0,
+        _currentMark: null,
+        _hlTimer: null,
+        
+        undo() { if(cmEditor) { cmEditor.undo(); cmEditor.focus(); } this.closeMenu(); },
+        redo() { if(cmEditor) { cmEditor.redo(); cmEditor.focus(); } this.closeMenu(); },
+        copy() {
+          if(!cmEditor) return;
+          const text = cmEditor.getSelection();
+          if(text) navigator.clipboard.writeText(text).then(() => UI.toast('Copied'));
+          this.closeMenu(); cmEditor.focus();
+        },
+        cut() {
+          if(!cmEditor) return;
+          const text = cmEditor.getSelection();
+          if(text) { navigator.clipboard.writeText(text).then(() => { cmEditor.replaceSelection(''); UI.toast('Cut'); }); }
+          this.closeMenu(); cmEditor.focus();
+        },
+        async paste() {
+          this.closeMenu(); if(!cmEditor) return;
+          try { const text = await navigator.clipboard.readText(); cmEditor.replaceSelection(text); } 
+          catch(e) { UI.toast('Paste blocked. Use your device native long-press.', 'error'); }
+          cmEditor.focus();
+        },
+        closeMenu() { document.getElementById('edit-menu').classList.remove('active'); },
+        
+        encodeBase64() {
+          this.closeMenu();
+          if (!cmEditor || getActiveTab()?.isHex || getActiveTab()?.isImage) {
+            return UI.toast('Encoding is disabled in this view', 'error');
+          }
+          
+          try {
+            const text = cmEditor.getValue();
+            // Safe UTF-8 to Base64 encoding
+            const encoded = btoa(unescape(encodeURIComponent(text)));
+            cmEditor.setValue(encoded);
+            const tab = getActiveTab();
+            if (tab) { tab.content = encoded; tab.bytesDirty = true; tab.isDirty = true; UI.renderTabs(); }
+            UI.toast('Content encoded to Base64');
+          } catch (e) {
+            UI.toast('Failed to encode content: ' + e.message, 'error');
+          }
+        },
+        
+        decodeBase64() {
+          this.closeMenu();
+          if (!cmEditor || getActiveTab()?.isHex || getActiveTab()?.isImage) {
+            return UI.toast('Decoding is disabled in this view', 'error');
+          }
+          
+          try {
+            const text = cmEditor.getValue().trim();
+            // Safe Base64 to UTF-8 decoding
+            const decoded = decodeURIComponent(escape(atob(text)));
+            cmEditor.setValue(decoded);
+            const tab = getActiveTab();
+            if (tab) { tab.content = decoded; tab.bytesDirty = true; tab.isDirty = true; UI.renderTabs(); }
+            UI.toast('Content decoded from Base64');
+          } catch (e) {
+            UI.toast('Invalid Base64 string', 'error');
+          }
+        },
+
+        showFindReplace(isReplace = false) {
+          this.closeMenu();
+          if (!cmEditor || getActiveTab()?.isHex || getActiveTab()?.isImage) {
+            return UI.toast('Search is disabled in this view', 'error');
+          }
+          
+          document.getElementById('fr-title').innerHTML = isReplace 
+            ? '<i data-lucide="refresh-cw" size="16"></i> Replace' 
+            : '<i data-lucide="search" size="16"></i> Find';
+          
+          document.getElementById('replace-wrapper').style.display = isReplace ? 'flex' : 'none';
+          document.getElementById('fr-replace-actions').style.display = isReplace ? 'flex' : 'none';
+          
+          document.getElementById('find-replace-modal').classList.add('active');
+          lucide.createIcons();
+          
+          const selection = cmEditor.getSelection();
+          if (selection && selection.indexOf('\n') === -1) {
+            document.getElementById('find-input').value = selection;
+          }
+          this.updateMatchHighlights();
+          
+          setTimeout(() => document.getElementById('find-input').focus(), 50);
+        },
+        
+        toggleSearchOpt(opt) {
+          this.searchOpts[opt] = !this.searchOpts[opt];
+          document.getElementById(`fr-btn-${opt}`).classList.toggle('active', this.searchOpts[opt]);
+          this.updateMatchHighlights();
+        },
+
+        clearMatches() {
+          this.matchMarks.forEach(m => m.clear());
+          this.matchMarks = [];
+          this.matchRanges = [];
+          this.matchTotal = 0;
+          if (this._currentMark) { this._currentMark.clear(); this._currentMark = null; }
+          const c = document.getElementById('fr-count');
+          if (c) c.textContent = '';
+        },
+
+        scheduleHighlight() {
+          clearTimeout(this._hlTimer);
+          this._hlTimer = setTimeout(() => this.updateMatchHighlights(), 150);
+        },
+
+        updateMatchHighlights() {
+          this.clearMatches();
+          const modal = document.getElementById('find-replace-modal');
+          if (!cmEditor || !modal.classList.contains('active')) return;
+          const queryText = document.getElementById('find-input').value;
+          const query = this.buildQuery(queryText, true);
+          if (!query) return;
+
+          const caseFold = !this.searchOpts.case && !this.searchOpts.regex && !this.searchOpts.word;
+          const makeMarks = !!state.prefs.highlightMatches;
+          let count = 0;
+
+          cmEditor.operation(() => {
+            let cursor = cmEditor.getSearchCursor(query, CodeMirror.Pos(cmEditor.firstLine(), 0), {caseFold});
+            while (cursor.findNext()) {
+              if (count >= 5000) break; // guard against pathological matches
+              const from = cursor.from(), to = cursor.to();
+              this.matchRanges.push({ from, to });
+              if (makeMarks) this.matchMarks.push(cmEditor.markText(from, to, { className: 'cm-search-match' }));
+              count++;
+            }
+          });
+          this.matchTotal = count;
+          this.updateMatchCount();
+        },
+
+        updateMatchCount() {
+          const c = document.getElementById('fr-count');
+          if (!c) return;
+          const total = this.matchTotal || 0;
+          if (!total) { c.textContent = ''; return; }
+          let idx = -1;
+          const sel = cmEditor && cmEditor.listSelections()[0];
+          if (sel) {
+            for (let i = 0; i < this.matchRanges.length; i++) {
+              const r = this.matchRanges[i];
+              if (CodeMirror.cmpPos(r.from, sel.anchor) === 0 && CodeMirror.cmpPos(r.to, sel.head) === 0) { idx = i; break; }
+            }
+          }
+          c.textContent = idx >= 0
+            ? `${idx + 1} of ${total}`
+            : `${total} match${total !== 1 ? 'es' : ''}`;
+        },
+
+        buildQuery(text, silent = false) {
+          if (!text) return null;
+          if (this.searchOpts.regex) {
+            try { return new RegExp(text, this.searchOpts.case ? 'g' : 'gi'); } 
+            catch(e) { if (!silent) UI.toast('Invalid Regular Expression', 'error'); return null; }
+          }
+          if (this.searchOpts.word) {
+            let escaped = text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+            return new RegExp("\\b" + escaped + "\\b", this.searchOpts.case ? 'g' : 'gi');
+          }
+          return text;
+        },
+        
+        doSearch(reverse = false) {
+          if (!cmEditor) return;
+          const queryText = document.getElementById('find-input').value;
+          const query = this.buildQuery(queryText);
+          if (!query) return;
+
+          const caseFold = !this.searchOpts.case && !this.searchOpts.regex && !this.searchOpts.word;
+          
+          let cursor = cmEditor.getSearchCursor(query, cmEditor.getCursor(reverse ? 'from' : 'to'), {caseFold});
+          let match = reverse ? cursor.findPrevious() : cursor.findNext();
+          
+          if (!match) {
+             const wrapPos = reverse ? CodeMirror.Pos(cmEditor.lastLine()) : CodeMirror.Pos(cmEditor.firstLine(), 0);
+             cursor = cmEditor.getSearchCursor(query, wrapPos, {caseFold});
+             match = reverse ? cursor.findPrevious() : cursor.findNext();
+          }
+
+          if (match) {
+             cmEditor.setSelection(cursor.from(), cursor.to());
+             cmEditor.scrollIntoView({from: cursor.from(), to: cursor.to()}, 100);
+             if (this._currentMark) { this._currentMark.clear(); this._currentMark = null; }
+             this._currentMark = cmEditor.markText(cursor.from(), cursor.to(), { className: 'cm-search-match-current' });
+             this.updateMatchCount();
+          } else {
+             UI.toast("No results found");
+          }
+        },
+        
+        doReplace() {
+          if (!cmEditor) return;
+          const queryText = document.getElementById('find-input').value;
+          const replaceText = document.getElementById('replace-input').value;
+          const query = this.buildQuery(queryText);
+          if (!query) return;
+
+          const caseFold = !this.searchOpts.case && !this.searchOpts.regex && !this.searchOpts.word;
+          
+          let cursor = cmEditor.getSearchCursor(query, cmEditor.getCursor('from'), {caseFold});
+          if (cursor.findNext() && cursor.from().line === cmEditor.getCursor('from').line && cursor.from().ch === cmEditor.getCursor('from').ch) {
+             cursor.replace(replaceText);
+          }
+          
+          this.doSearch(false);
+          this.updateMatchHighlights();
+        },
+        
+        doReplaceAll() {
+          if (!cmEditor) return;
+          const queryText = document.getElementById('find-input').value;
+          const replaceText = document.getElementById('replace-input').value;
+          const query = this.buildQuery(queryText);
+          if (!query) return;
+
+          const caseFold = !this.searchOpts.case && !this.searchOpts.regex && !this.searchOpts.word;
+          let count = 0;
+          
+          cmEditor.operation(() => {
+             let cursor = cmEditor.getSearchCursor(query, CodeMirror.Pos(cmEditor.firstLine(), 0), {caseFold});
+             while (cursor.findNext()) {
+                cursor.replace(replaceText);
+                count++;
+             }
+          });
+          
+          UI.toast(`Replaced ${count} occurrence${count !== 1 ? 's' : ''}`);
+          this.updateMatchHighlights();
+        }
+      };
+
+      async function handleFileDrop(file, handle = null) {
+        const buffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        const ext = file.name.split('.').pop().toLowerCase();
+        const isImage = IMAGE_EXTS.includes(ext);
+        const isBinary = !isImage && BINARY_EXTS.includes(ext);
+        const enc = (isBinary || isImage) ? { encoding: 'UTF-8', bom: false } : detectEncoding(bytes);
+        const content = (isBinary || isImage) ? "" : decodeBytes(bytes, enc.encoding, enc.bom);
+        createTab(file.name, content, bytes, handle, getModeForExt(ext), isBinary, isImage, enc.encoding, enc.bom);
+        return getActiveTab();
+      }
+
+      async function requestPermission(handle, mode) {
+        if (!handle || !handle.queryPermission) return 'granted';
+        let perm = await handle.queryPermission({ mode });
+        if (perm !== 'granted') {
+          try { perm = await handle.requestPermission({ mode }); } catch (e) { return 'denied'; }
+        }
+        return perm;
+      }
+
+      async function openFromHandle(handle) {
+        try {
+          if ((await requestPermission(handle, 'read')) !== 'granted') {
+            return UI.toast('Read permission was denied', 'error');
+          }
+          const file = await handle.getFile();
+          await handleFileDrop(file, handle);
+          addRecent(handle, file.name);
+          return true;
+        } catch (e) {
+          UI.toast('Failed to open file: ' + e.message, 'error');
+          return false;
+        }
+      }
+
+      async function openFile() {
+        try {
+          if ('showOpenFilePicker' in window) {
+            const [handle] = await window.showOpenFilePicker();
+            await openFromHandle(handle);
+          } else {
+            const input = document.createElement('input'); input.type = 'file';
+            input.onchange = async e => { if(e.target.files[0]) await handleFileDrop(e.target.files[0]); };
+            input.click();
+          }
+        } catch (e) { if(e.name !== 'AbortError') UI.toast('Failed to open file.', 'error'); }
+      }
+
+      // --- File System Access: open folder + sidebar tree ---
+      const FS_SUPPORTED = 'showDirectoryPicker' in window;
+
+      async function openFolder() {
+        EditorActions.closeMenu();
+        if (!FS_SUPPORTED) return UI.toast('Folder access is not supported in this browser', 'error');
+        try {
+          const dir = await window.showDirectoryPicker();
+          await Sidebar.setRoot(dir);
+        } catch (e) { if (e.name !== 'AbortError') UI.toast('Failed to open folder: ' + e.message, 'error'); }
+      }
+
+      async function reconnectFolder() {
+        const handle = Sidebar.rootHandle;
+        if (!handle) return;
+        try {
+          if ((await requestPermission(handle, 'read')) !== 'granted') return UI.toast('Folder permission denied', 'error');
+          await Sidebar.setRoot(handle);
+        } catch (e) { UI.toast('Failed to reconnect folder: ' + e.message, 'error'); }
+      }
+
+      const Sidebar = {
+        rootHandle: null,
+        nodeSeq: 0,
+        nodeMap: {},
+        activeId: null,
+
+        toggle() {
+          const el = document.getElementById('sidebar');
+          el.classList.toggle('collapsed');
+          if (cmEditor) setTimeout(() => cmEditor.refresh(), 10);
+        },
+
+        show() {
+          document.getElementById('sidebar').classList.remove('collapsed');
+          if (cmEditor) setTimeout(() => cmEditor.refresh(), 10);
+        },
+
+        addNode(node) { const id = 'n' + (++this.nodeSeq); this.nodeMap[id] = node; return id; },
+
+        async setRoot(handle) {
+          this.rootHandle = handle;
+          this.nodeSeq = 0;
+          this.nodeMap = {};
+          this.activeId = null;
+          document.getElementById('sidebar-title').textContent = handle.name || 'Folder';
+          document.getElementById('sidebar-hint').style.display = 'none';
+          document.getElementById('sidebar-reconnect').style.display = 'none';
+          this.show();
+          const tree = document.getElementById('file-tree');
+          tree.innerHTML = '';
+          await this.renderDir(handle, tree, 0, handle);
+          lucide.createIcons();
+          IDB.putHandle({ key: 'folder', handle, name: handle.name || '', at: Date.now() });
+        },
+
+        async renderDir(dirHandle, container, depth, parentHandle) {
+          let entries = [];
+          try {
+            for await (const [name, h] of dirHandle.entries()) entries.push({ name, handle: h });
+          } catch (e) {
+            UI.toast('Unable to read folder: ' + e.message, 'error');
+            return;
+          }
+          entries.sort((a, b) => {
+            const ad = a.handle.kind === 'directory', bd = b.handle.kind === 'directory';
+            if (ad !== bd) return ad ? -1 : 1;
+            return a.name.localeCompare(b.name, undefined, { numeric: true });
+          });
+          container.innerHTML = '';
+          if (!entries.length) {
+            const empty = document.createElement('div');
+            empty.className = 'tree-row';
+            empty.style.paddingLeft = (10 + depth * 14) + 'px';
+            empty.innerHTML = '<span class="tree-caret"></span><span class="tree-name" style="color:var(--text-muted);">(empty)</span>';
+            container.appendChild(empty);
+            return;
+          }
+          for (const e of entries) {
+            const isDir = e.handle.kind === 'directory';
+            const id = this.addNode({ handle: e.handle, kind: e.handle.kind, name: e.name, depth, parentHandle });
+            const row = document.createElement('div');
+            row.className = 'tree-row' + (this.activeId === id ? ' active' : '');
+            row.dataset.treeId = id;
+            row.dataset.action = 'tree-row';
+            row.setAttribute('role', 'treeitem');
+            row.style.paddingLeft = (10 + depth * 14) + 'px';
+            row.innerHTML = '<span class="tree-caret' + (isDir ? '' : '') + '">' +
+              (isDir ? '<i data-lucide="chevron-right" size="14"></i>' : '') + '</span>' +
+              '<i class="tree-icon" data-lucide="' + (isDir ? 'folder' : 'file') + '" size="15"></i>' +
+              '<span class="tree-name">' + escapeHtml(e.name) + '</span>';
+            container.appendChild(row);
+            if (isDir) {
+              const child = document.createElement('div');
+              child.className = 'tree-children';
+              child.dataset.parentId = id;
+              container.appendChild(child);
+            }
+          }
+        },
+
+        async onRowClick(id) {
+          const node = this.nodeMap[id];
+          if (!node) return;
+          if (node.kind === 'directory') { await this.toggleDir(id); return; }
+          const ok = await openFromHandle(node.handle);
+          if (ok) {
+            this.activeId = id;
+            document.querySelectorAll('#file-tree .tree-row.active').forEach(r => r.classList.remove('active'));
+            const row = document.querySelector('.tree-row[data-tree-id="' + id + '"]');
+            if (row) row.classList.add('active');
+          }
+        },
+
+        async toggleDir(id) {
+          const node = this.nodeMap[id];
+          if (!node || node.kind !== 'directory') return;
+          const row = document.querySelector('.tree-row[data-tree-id="' + id + '"]');
+          const child = document.querySelector('.tree-children[data-parent-id="' + id + '"]');
+          if (!row || !child) return;
+          const caret = row.querySelector('.tree-caret');
+          const open = child.classList.toggle('open');
+          if (caret) caret.classList.toggle('open', open);
+          if (open && !child.dataset.loaded) {
+            await this.renderDir(node.handle, child, node.depth + 1, node.handle);
+            child.dataset.loaded = '1';
+            lucide.createIcons();
+          }
+        },
+
+        async restore() {
+          const rec = await IDB.getHandle('folder');
+          if (!rec || !rec.handle) return;
+          this.rootHandle = rec.handle;
+          document.getElementById('sidebar-title').textContent = rec.name || 'Folder';
+          const perm = rec.handle.queryPermission ? await rec.handle.queryPermission({ mode: 'read' }) : 'granted';
+          if (perm === 'granted') {
+            await this.setRoot(rec.handle);
+          } else {
+            document.getElementById('sidebar-hint').style.display = 'none';
+            document.getElementById('sidebar-reconnect').style.display = 'flex';
+          }
+        }
+      };
+
+      // --- Recent files (persisted handles) ---
+      async function addRecent(handle, name) {
+        if (!handle) return;
+        try {
+          await IDB.putHandle({ key: 'recent:' + name, handle, name, at: Date.now() });
+          const all = (await IDB.getAllHandles()).filter(r => r.key && r.key.indexOf('recent:') === 0);
+          all.sort((a, b) => (b.at || 0) - (a.at || 0));
+          for (const r of all.slice(8)) await IDB.deleteHandle(r.key);
+          renderRecents();
+        } catch (e) { /* best-effort */ }
+      }
+
+      async function renderRecents() {
+        const box = document.getElementById('recent-files');
+        if (!box) return;
+        let all = [];
+        try { all = (await IDB.getAllHandles()).filter(r => r.key && r.key.indexOf('recent:') === 0); } catch (e) {}
+        all.sort((a, b) => (b.at || 0) - (a.at || 0));
+        const items = all.slice(0, 6);
+        if (!items.length) { box.innerHTML = ''; return; }
+        box.innerHTML = '<div class="menu-divider"></div><div class="menu-section-title">Recent</div>' +
+          items.map(r => '<div class="menu-item" data-action="open-recent" data-recent-key="' + escapeHtml(r.key) + '"><i data-lucide="file" size="16"></i> ' + escapeHtml(r.name) + '</div>').join('');
+        lucide.createIcons();
+      }
+
+      async function openRecent(key) {
+        EditorActions.closeMenu();
+        const rec = await IDB.getHandle(key);
+        if (!rec || !rec.handle) {
+          UI.toast('Recent file is no longer available', 'error');
+          await IDB.deleteHandle(key);
+          renderRecents();
+          return;
+        }
+        const ok = await openFromHandle(rec.handle);
+        if (!ok) { await IDB.deleteHandle(key); renderRecents(); }
+      }
+
+      // --- Command Palette ---
+      const Palette = {
+        items: [],
+        filtered: [],
+        active: 0,
+        buildCommands() {
+          return [
+            ['New File', 'Ctrl+N', () => createTab()],
+            ['Open File...', 'Ctrl+O', () => openFile()],
+            ['Open Folder...', '', () => openFolder()],
+            ['Save', 'Ctrl+S', () => saveFile()],
+            ['Save File As...', '', () => saveFile(true)],
+            ['Open Data URL...', '', () => openDataUrl()],
+            ['Toggle Sidebar', '', () => Sidebar.toggle()],
+            ['Format Document', '', () => formatCode()],
+            ['Toggle Hex Editor', '', () => toggleHex()],
+            ['Toggle Markdown Preview', '', () => togglePreview()],
+            ['HTML Live Preview', '', () => showHtmlPreview()],
+            ['Find', 'Ctrl+F', () => EditorActions.showFindReplace(false)],
+            ['Replace', 'Ctrl+H', () => EditorActions.showFindReplace(true)],
+            ['Undo', '', () => EditorActions.undo()],
+            ['Redo', '', () => EditorActions.redo()],
+            ['Encode Base64', '', () => EditorActions.encodeBase64()],
+            ['Decode Base64', '', () => EditorActions.decodeBase64()],
+            ['Copy Data URL', '', () => shareDataUrl()],
+            ['Toggle Line Ending (LF/CRLF)', '', () => toggleEol()],
+            ['Cycle Encoding (UTF-8 / UTF-16)', '', () => cycleEncoding()],
+            ['Theme Editor...', '', () => openThemeEditor()],
+            ['Crop Image', '', () => Crop.open()],
+            ['Resize Image', '', () => ImageResize.open()]
+          ].map(([title, hint, run]) => ({ id: title, title, hint, run }));
+        },
+        async open() {
+          const input = document.getElementById('palette-input');
+          input.value = '';
+          this.items = this.buildCommands();
+          try {
+            const recs = (await IDB.getAllHandles())
+              .filter(r => r.key && r.key.indexOf('recent:') === 0)
+              .sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 6);
+            recs.forEach(r => this.items.push({ id: r.key, title: r.name, hint: 'Recent', run: () => openRecent(r.key) }));
+          } catch (e) { /* ignore */ }
+          document.getElementById('palette-modal').classList.add('active');
+          this.render('');
+          setTimeout(() => input.focus(), 40);
+        },
+        render(q) {
+          const list = document.getElementById('palette-list');
+          const query = (q || '').trim().toLowerCase();
+          this.filtered = query ? this.items.filter(it => it.title.toLowerCase().indexOf(query) !== -1) : this.items.slice();
+          this.active = 0;
+          if (!this.filtered.length) { list.innerHTML = '<div class="palette-empty">No matching commands</div>'; return; }
+          list.innerHTML = this.filtered.map((it, i) =>
+            '<div class="palette-item' + (i === 0 ? ' active' : '') + '" data-palette-index="' + i + '">' +
+            '<i data-lucide="command" size="14"></i> ' + escapeHtml(it.title) +
+            (it.hint ? '<span class="palette-hint">' + escapeHtml(it.hint) + '</span>' : '') + '</div>'
+          ).join('');
+          lucide.createIcons();
+        },
+        move(delta) {
+          if (!this.filtered.length) return;
+          this.active = (this.active + delta + this.filtered.length) % this.filtered.length;
+          [...document.querySelectorAll('#palette-list .palette-item')].forEach((el, i) => el.classList.toggle('active', i === this.active));
+          const cur = document.querySelector('#palette-list .palette-item.active');
+          if (cur) cur.scrollIntoView({ block: 'nearest' });
+        },
+        run(i) {
+          const it = this.filtered[i !== undefined ? i : this.active];
+          if (!it) return;
+          UI.closeModals();
+          try { it.run(); } catch (e) { UI.toast('Command failed: ' + e.message, 'error'); }
+        }
+      };
+
+      // --- Theme Editor ---
+      const THEME_VARS = [
+        ['--bg-root', 'Background'], ['--bg-panel', 'Panel'], ['--bg-hover', 'Hover'], ['--bg-active', 'Active'],
+        ['--text-main', 'Text'], ['--text-muted', 'Muted text'], ['--accent', 'Accent'], ['--accent-hover', 'Accent hover'],
+        ['--border-light', 'Border'], ['--border-dark', 'Border dark'],
+        ['--hex-offset', 'Hex offset'], ['--hex-byte', 'Hex byte'], ['--hex-ascii', 'Hex ASCII']
+      ];
+
+      function applyThemeVars(theme) {
+        const root = document.documentElement;
+        THEME_VARS.forEach(([v]) => root.style.removeProperty(v));
+        const custom = state.customThemes && state.customThemes[theme];
+        if (custom) {
+          const base = custom.base || 'dracula';
+          root.setAttribute('data-theme', base);
+          Object.entries(custom.vars || {}).forEach(([v, val]) => { if (val) root.style.setProperty(v, val); });
+          if (cmEditor) cmEditor.setOption('theme', base === 'github-light' ? 'default' : base);
+        } else {
+          root.setAttribute('data-theme', theme);
+          if (cmEditor) cmEditor.setOption('theme', theme === 'github-light' ? 'default' : theme);
+        }
+      }
+
+      function rebuildThemeSelect() {
+        const sel = document.getElementById('theme-selector');
+        if (!sel) return;
+        const builtins = [['dracula', 'Theme: Dracula'], ['monokai', 'Theme: Monokai'], ['github-light', 'Theme: Light'], ['eclipse', 'Theme: Eclipse']];
+        const customs = Object.keys(state.customThemes || {}).map(n => [n, 'Theme: ' + n]);
+        sel.replaceChildren(...[...builtins, ...customs].map(([v, l]) => {
+          const o = document.createElement('option'); o.value = v; o.textContent = l; return o;
+        }));
+        sel.value = state.theme;
+      }
+
+      const ThemeEditor = {
+        readCurrentVars() {
+          const cs = getComputedStyle(document.documentElement);
+          const out = {};
+          THEME_VARS.forEach(([v]) => { out[v] = rgbToHex(cs.getPropertyValue(v)); });
+          return out;
+        },
+        open() {
+          const saved = document.getElementById('theme-saved');
+          const names = Object.keys(state.customThemes || {});
+          saved.replaceChildren(...[['', '— New theme —'], ...names.map(n => [n, n])].map(([v, l]) => {
+            const o = document.createElement('option'); o.value = v; o.textContent = l; return o;
+          }));
+          const custom = state.customThemes && state.customThemes[state.theme];
+          saved.value = custom ? state.theme : '';
+          document.getElementById('theme-base').value = custom ? (custom.base || 'dracula') : (state.theme === 'github-light' || state.theme === 'eclipse' ? 'default' : state.theme);
+          this.renderColorRows(custom ? custom.vars : this.readCurrentVars());
+          document.getElementById('theme-name').value = custom ? state.theme : '';
+          document.getElementById('theme-modal').classList.add('active');
+          lucide.createIcons();
+        },
+        renderColorRows(vars) {
+          const box = document.getElementById('theme-colors');
+          box.innerHTML = THEME_VARS.map(([v, label]) =>
+            '<div class="theme-color-row"><input type="color" data-theme-var="' + v + '" value="' + (vars[v] || '#000000') + '"><span>' + label + '</span></div>'
+          ).join('');
+          box.querySelectorAll('[data-theme-var]').forEach(inp => inp.addEventListener('input', () => this.preview()));
+        },
+        preview() {
+          const root = document.documentElement;
+          document.querySelectorAll('[data-theme-var]').forEach(inp => root.style.setProperty(inp.dataset.themeVar, inp.value));
+          const base = document.getElementById('theme-base').value;
+          root.setAttribute('data-theme', base);
+          if (cmEditor) cmEditor.setOption('theme', base === 'github-light' ? 'default' : base);
+        },
+        collect() {
+          const vars = {};
+          document.querySelectorAll('[data-theme-var]').forEach(inp => { vars[inp.dataset.themeVar] = inp.value; });
+          return vars;
+        },
+        loadSaved() {
+          const name = document.getElementById('theme-saved').value;
+          if (!name || !state.customThemes[name]) return UI.toast('Select a saved theme', 'error');
+          const t = state.customThemes[name];
+          document.getElementById('theme-name').value = name;
+          document.getElementById('theme-base').value = t.base || 'dracula';
+          this.renderColorRows(t.vars);
+          this.preview();
+        },
+        save() {
+          const name = document.getElementById('theme-name').value.trim();
+          if (!name) return UI.toast('Enter a theme name', 'error');
+          state.customThemes = state.customThemes || {};
+          state.customThemes[name] = { base: document.getElementById('theme-base').value, vars: this.collect() };
+          localStorage.setItem('je_pro_custom_themes', JSON.stringify(state.customThemes));
+          state.theme = name;
+          applyThemeVars(name);
+          rebuildThemeSelect();
+          Storage.save();
+          UI.toast('Theme "' + name + '" saved');
+        },
+        remove() {
+          const name = document.getElementById('theme-saved').value;
+          if (!name || !state.customThemes[name]) return UI.toast('Select a saved theme', 'error');
+          delete state.customThemes[name];
+          localStorage.setItem('je_pro_custom_themes', JSON.stringify(state.customThemes));
+          if (state.theme === name) { state.theme = 'dracula'; applyThemeVars('dracula'); }
+          rebuildThemeSelect();
+          Storage.save();
+          document.getElementById('theme-saved').value = '';
+          UI.toast('Theme deleted');
+        }
+      };
+
+      function openThemeEditor() { ThemeEditor.open(); }
+
+      // --- Image crop / resize ---
+      const Crop = {
+        blobUrl: null,
+        img: null,
+        natW: 0, natH: 0, dispW: 0, dispH: 0, scale: 1,
+        rect: null,
+        async open() {
+          const tab = getActiveTab();
+          if (!tab || !tab.isImage) return UI.toast('Open an image to crop', 'error');
+          document.getElementById('crop-modal').classList.add('active');
+          try {
+            const blob = await renderEditedImage(tab, 'image/png', 1);
+            if (this.blobUrl) URL.revokeObjectURL(this.blobUrl);
+            this.blobUrl = URL.createObjectURL(blob);
+            const img = document.getElementById('crop-img');
+            this.img = img;
+            img.onload = () => requestAnimationFrame(() => this.setup());
+            img.src = this.blobUrl;
+          } catch (e) {
+            UI.closeModals();
+            UI.toast('Could not prepare crop: ' + e.message, 'error');
+          }
+        },
+        setup() {
+          const img = this.img;
+          if (!img) return;
+          this.natW = img.naturalWidth; this.natH = img.naturalHeight;
+          const r = img.getBoundingClientRect();
+          this.dispW = r.width; this.dispH = r.height;
+          this.scale = this.natW ? r.width / this.natW : 1;
+          this.rect = { x: 0, y: 0, w: r.width, h: r.height };
+          this.renderRect();
+        },
+        renderRect() {
+          const sel = document.getElementById('crop-selection');
+          const img = this.img;
+          const ir = img.getBoundingClientRect();
+          const sr = document.getElementById('crop-stage').getBoundingClientRect();
+          const ox = ir.left - sr.left, oy = ir.top - sr.top;
+          const r = this.rect;
+          sel.style.left = (ox + r.x) + 'px';
+          sel.style.top = (oy + r.y) + 'px';
+          sel.style.width = r.w + 'px';
+          sel.style.height = r.h + 'px';
+          const sw = Math.round(r.w / this.scale), sh = Math.round(r.h / this.scale);
+          document.getElementById('crop-info').textContent = 'Crop: ' + sw + ' × ' + sh + ' px (from ' + this.natW + ' × ' + this.natH + ')';
+        },
+        bind() {
+          const sel = document.getElementById('crop-selection');
+          if (sel.dataset.bound) return;
+          sel.dataset.bound = '1';
+          let mode = null, start = null, handle = null;
+          sel.addEventListener('pointerdown', e => {
+            handle = e.target.closest('.crop-handle') ? e.target.closest('.crop-handle').dataset.handle : null;
+            mode = handle ? 'resize' : 'move';
+            const sr = document.getElementById('crop-stage').getBoundingClientRect();
+            start = { px: e.clientX - sr.left, py: e.clientY - sr.top, rect: { ...this.rect } };
+            try { sel.setPointerCapture(e.pointerId); } catch (_) {}
+            e.preventDefault();
+          });
+          sel.addEventListener('pointermove', e => {
+            if (!mode || !start) return;
+            const img = this.img;
+            const ir = img.getBoundingClientRect();
+            const sr = document.getElementById('crop-stage').getBoundingClientRect();
+            const dx = (e.clientX - sr.left) - start.px;
+            const dy = (e.clientY - sr.top) - start.py;
+            const iw = ir.width, ih = ir.height, min = 24;
+            let r = { ...start.rect };
+            if (mode === 'move') {
+              r.x = start.rect.x + dx; r.y = start.rect.y + dy;
+            } else {
+              if (handle.indexOf('w') !== -1) { const nx = Math.min(start.rect.x + start.rect.w - min, Math.max(0, start.rect.x + dx)); r.w = start.rect.x + start.rect.w - nx; r.x = nx; }
+              if (handle.indexOf('e') !== -1) { r.w = Math.max(min, start.rect.w + dx); }
+              if (handle.indexOf('n') !== -1) { const ny = Math.min(start.rect.y + start.rect.h - min, Math.max(0, start.rect.y + dy)); r.h = start.rect.y + start.rect.h - ny; r.y = ny; }
+              if (handle.indexOf('s') !== -1) { r.h = Math.max(min, start.rect.h + dy); }
+            }
+            r.w = Math.min(r.w, iw); r.h = Math.min(r.h, ih);
+            r.x = Math.max(0, Math.min(r.x, iw - r.w));
+            r.y = Math.max(0, Math.min(r.y, ih - r.h));
+            this.rect = r;
+            this.renderRect();
+          });
+          const end = e => { mode = null; start = null; handle = null; try { sel.releasePointerCapture(e.pointerId); } catch (_) {} };
+          sel.addEventListener('pointerup', end);
+          sel.addEventListener('pointercancel', end);
+        },
+        reset() {
+          if (!this.img) return;
+          const r = this.img.getBoundingClientRect();
+          this.scale = this.natW ? r.width / this.natW : 1;
+          this.rect = { x: 0, y: 0, w: r.width, h: r.height };
+          this.renderRect();
+        },
+        apply() {
+          const tab = getActiveTab();
+          if (!tab || !tab.isImage || !this.rect) return;
+          const sx = Math.round(this.rect.x / this.scale), sy = Math.round(this.rect.y / this.scale);
+          const sw = Math.max(1, Math.round(this.rect.w / this.scale)), sh = Math.max(1, Math.round(this.rect.h / this.scale));
+          const img = new Image();
+          img.onload = () => {
+            const c = document.createElement('canvas');
+            c.width = sw; c.height = sh;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+            c.toBlob(b => {
+              if (!b) return UI.toast('Crop failed', 'error');
+              b.arrayBuffer().then(buf => {
+                tab.bytes = new Uint8Array(buf);
+                tab.imgEdits = defaultImgEdits();
+                tab.isDirty = true; tab.bytesDirty = false;
+                UI.closeModals();
+                if (tab.isHex) Hex.load(tab.bytes); else ImageViewer.load(tab);
+                UI.renderTabs(); UI.updateStatusBar(); Storage.save();
+                UI.toast('Cropped to ' + sw + ' × ' + sh);
+              });
+            }, 'image/png');
+          };
+          img.onerror = () => UI.toast('Crop failed to decode', 'error');
+          img.src = this.blobUrl;
+        }
+      };
+
+      const ImageResize = {
+        ratio: 1,
+        open() {
+          const tab = getActiveTab();
+          if (!tab || !tab.isImage) return UI.toast('Open an image to resize', 'error');
+          const img = document.getElementById('image-view-img');
+          const w = img.naturalWidth || 0, h = img.naturalHeight || 0;
+          this.ratio = h ? w / h : 1;
+          document.getElementById('resize-width').value = w;
+          document.getElementById('resize-height').value = h;
+          document.getElementById('resize-modal').classList.add('active');
+        },
+        async apply() {
+          const tab = getActiveTab();
+          if (!tab || !tab.isImage) return;
+          const w = Math.max(1, parseInt(document.getElementById('resize-width').value, 10) || 0);
+          const h = Math.max(1, parseInt(document.getElementById('resize-height').value, 10) || 0);
+          try {
+            const blob = await renderEditedImage(tab, 'image/png', 1);
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = () => {
+              const c = document.createElement('canvas');
+              c.width = w; c.height = h;
+              c.getContext('2d').drawImage(img, 0, 0, w, h);
+              URL.revokeObjectURL(url);
+              c.toBlob(b => {
+                if (!b) return UI.toast('Resize failed', 'error');
+                b.arrayBuffer().then(buf => {
+                  tab.bytes = new Uint8Array(buf);
+                  tab.imgEdits = defaultImgEdits();
+                  tab.isDirty = true; tab.bytesDirty = false;
+                  UI.closeModals();
+                  if (tab.isHex) Hex.load(tab.bytes); else ImageViewer.load(tab);
+                  UI.renderTabs(); UI.updateStatusBar(); Storage.save();
+                  UI.toast('Resized to ' + w + ' × ' + h);
+                });
+              }, 'image/png');
+            };
+            img.onerror = () => { URL.revokeObjectURL(url); UI.toast('Resize failed to decode', 'error'); };
+            img.src = url;
+          } catch (e) { UI.toast('Resize failed: ' + e.message, 'error'); }
+        }
+      };
+
+      // --- Saving back to the original file handle ---
+      function getConvertibleImageMime(ext) {        return { 'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'webp': 'image/webp', 'bmp': 'image/bmp' }[ext] || null;
+      }
+
+      async function bakeImageEdits(tab, newExt) {
+        if (!tab.isImage) return true;
+        const conv = getConvertibleImageMime(newExt);
+        if (!conv) return true;
+        try {
+          const quality = (tab.imgEdits || defaultImgEdits()).quality;
+          const outBlob = await renderEditedImage(tab, conv, quality);
+          tab.bytes = new Uint8Array(await outBlob.arrayBuffer());
+          tab.imgEdits = defaultImgEdits();
+          return true;
+        } catch (e) {
+          UI.toast('Image conversion failed: ' + e.message, 'error');
+          return false;
+        }
+      }
+
+      async function getTabBlob(tab, targetExt) {
+        if (tab.isImage) {
+          if (!(await bakeImageEdits(tab, targetExt))) return null;
+        } else {
+          syncTabBytes(tab);
+        }
+        return new Blob([tab.bytes], { type: 'application/octet-stream' });
+      }
+
+      function postSave(tab, fullName, newExt) {
+        tab.name = fullName;
+        tab.isDirty = false;
+        tab.mode = getModeForExt(newExt);
+        if (cmEditor) cmEditor.setOption('mode', tab.mode);
+        if (tab.isImage) { if (tab.isHex) Hex.load(tab.bytes); else ImageViewer.load(tab); }
+        UI.renderAll();
+        Storage.save();
+      }
+
+      async function directSave(tab) {
+        if (!tab || !tab.fileHandle) return false;
+        if (tab === getActiveTab() && !tab.isHex && !tab.isImage) {
+          // The editor buffer is the source of truth for the active text tab.
+          tab.content = cmEditor.getValue();
+          tab.bytesDirty = true;
+        }
+        try {
+          if ((await requestPermission(tab.fileHandle, 'readwrite')) !== 'granted') {
+            UI.toast('Write permission was denied', 'error');
+            return false;
+          }
+          const ext = tab.name.split('.').pop().toLowerCase();
+          const blob = await getTabBlob(tab, ext);
+          if (!blob) return false;
+          const writable = await tab.fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          postSave(tab, tab.name, ext);
+          UI.toast('Saved ' + tab.name);
+          return true;
+        } catch (e) {
+          UI.toast('Save failed: ' + e.message, 'error');
+          return false;
+        }
+      }
+
+      async function saveFile(saveAs = false) {
+        const tab = getActiveTab();
+        if (!tab) return;
+        if (tab.fileHandle && !saveAs) { await directSave(tab); return; }
+        openSaveModal();
+      }
+
+      function openSaveModal() {
+        const tab = getActiveTab();
+        if(!tab) return;
+        const parts = tab.name.split('.');
+        let ext = parts.length > 1 ? '.'+parts.pop().toLowerCase() : (EXT_TO_MIME[tab.mode] || 'custom');
+        const extSel = document.getElementById('save-ext');
+        // Extension not in the dropdown: fall back to 'custom' and keep the full name as-is
+        if (ext !== 'custom' && !Array.from(extSel.options).some(o => o.value === ext)) ext = 'custom';
+        document.getElementById('save-filename').value = ext === 'custom' ? tab.name : (parts.join('.') || tab.name);
+        extSel.value = ext;
+        document.getElementById('save-modal').classList.add('active');
+        document.getElementById('save-filename').focus();
+      }
+
+      async function executeSave() {
+        const tab = getActiveTab();
+        if(!tab) return;
+        if (!tab.isImage && !tab.isHex) {
+          tab.content = cmEditor.getValue();
+          tab.bytesDirty = true;
+        }
+
+        const baseName = document.getElementById('save-filename').value.trim() || 'document';
+        const ext = document.getElementById('save-ext').value;
+        const fullName = ext === 'custom' ? baseName : (baseName.endsWith(ext) ? baseName : baseName + ext);
+        const newExt = fullName.split('.').pop().toLowerCase();
+
+        if (tab.isImage) {
+          // Convert format when the target extension is an image format; otherwise keep raw bytes
+          if (getConvertibleImageMime(newExt)) {
+            if (!(await bakeImageEdits(tab, newExt))) return;
+            tab.name = fullName; // ImageViewer picks its blob MIME from the tab name
+            if (tab.isHex) Hex.load(tab.bytes); else ImageViewer.load(tab);
+          }
+        } else {
+          syncTabBytes(tab);
+        }
+
+        const blob = new Blob([tab.bytes], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = fullName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        tab.name = fullName; tab.isDirty = false;
+        tab.mode = getModeForExt(newExt);
+        cmEditor.setOption('mode', tab.mode);
+
+        UI.closeModals(); UI.renderAll(); Storage.save();
+        UI.toast(`Saved ${fullName}`);
+      }
+
+      // --- Data URL Handling ---
+      function openDataUrl() {
+        document.getElementById('data-url-input').value = '';
+        document.getElementById('data-url-modal').classList.add('active');
+        setTimeout(() => document.getElementById('data-url-input').focus(), 50);
+      }
+
+      async function processDataUrl() {
+        const url = document.getElementById('data-url-input').value.trim();
+        if (!url) return;
+        
+        if (!url.startsWith('data:')) {
+          return UI.toast('Invalid Data URL: Must start with "data:"', 'error');
+        }
+
+        try {
+          const commaIdx = url.indexOf(',');
+          const header = url.substring(5, commaIdx);
+          const rawPayload = url.substring(commaIdx + 1);
+          
+          let content = '';
+          let bytes;
+          
+          if (header.includes('base64')) {
+            const binaryStr = atob(rawPayload.trim());
+            bytes = Uint8Array.from(binaryStr, c => c.charCodeAt(0));
+            content = new TextDecoder('utf-8').decode(bytes);
+          } else {
+            content = decodeURIComponent(rawPayload);
+            bytes = new TextEncoder().encode(content);
+          }
+
+          // Automatically extract GZIP compressed payload if created by JustEdit Pro shareDataUrl()
+          const jeMatch = content.match(/const b="([^"]+)";const c=new DecompressionStream/);
+          if (jeMatch) {
+              const b64Gzip = jeMatch[1];
+              const ds = new DecompressionStream('gzip');
+              const writer = ds.writable.getWriter();
+              
+              // Chunked write to bypass stack limits
+              const zipStr = atob(b64Gzip.trim());
+              const zipBytes = new Uint8Array(zipStr.length);
+              for (let i = 0; i < zipStr.length; i++) zipBytes[i] = zipStr.charCodeAt(i);
+              
+              writer.write(zipBytes);
+              writer.close();
+              
+              content = await new Response(ds.readable).text();
+              bytes = new TextEncoder().encode(content);
+          }
+
+          let ext = 'txt';
+          let mode = 'text/plain';
+          let isImage = false;
+          
+          // Basic MIME inference
+          if (header.includes('text/html') || jeMatch) { ext = 'html'; mode = 'htmlmixed'; }
+          else if (header.includes('application/json')) { ext = 'json'; mode = 'application/json'; }
+          else if (header.includes('image/')) {
+              const mime = header.split(';')[0];
+              ext = mime.split('/')[1] || 'png';
+              isImage = true;
+          }
+
+          createTab(`DataLink.${ext}`, content, bytes, null, mode, false, isImage);
+          UI.closeModals();
+          UI.toast('Data URL successfully loaded');
+        } catch (err) {
+          UI.toast('Failed to parse data URL', 'error');
+          console.error(err);
+        }
+      }
+
+      // Lowest positive number not currently used by an existing tab, so closing
+      // "new-4" makes the next new file "new-4" again instead of continually growing.
+      function nextUntitledName() {
+        const used = new Set(state.tabs.map(t => t.name));
+        let n = 1;
+        while (used.has(`new-${n}`)) n++;
+        return `new-${n}`;
+      }
+
+      function createTab(name=null, content="", bytes=null, fileHandle=null, mode="text/plain", isHex=false, isImage=false, encoding='UTF-8', bom=false) {
+        const id = 't_' + Math.random().toString(36).slice(2, 11);
+        if(!name) name = nextUntitledName();
+
+        const tabBytes = bytes || encodeContent(content, detectEol(content), encoding, bom);
+        const tabContent = content !== undefined ? content : decodeBytes(tabBytes, encoding, bom);
+
+        state.tabs.push({
+          id, name, content: tabContent, bytes: tabBytes, bytesDirty: false, fileHandle, mode, isHex, isImage, isDirty: false, isPreviewOpen: false,
+          eol: detectEol(tabContent), encoding, bom
+        });
+        
+        switchTab(id);
+      }
+
+      function switchTab(id) {
+        if(state.activeId && state.activeId !== id && state.tabs.find(t=>t.id===state.activeId)) {
+          const oldTab = getActiveTab();
+          if(oldTab && !oldTab.isHex && !oldTab.isImage) {
+            oldTab.content = cmEditor.getValue();
+          }
+        }
+        state.activeId = id;
+        const tab = getActiveTab();
+        EditorActions.clearMatches();
+        
+        document.getElementById('btn-preview').style.display = tab?.mode === 'markdown' ? 'flex' : 'none';
+        document.getElementById('btn-html-preview').style.display = tab?.mode === 'htmlmixed' ? 'flex' : 'none';
+
+        if(tab) {
+          document.getElementById('sb-stats').style.display = 'flex';
+          
+          if(tab.isHex) {
+            document.querySelectorAll('.view-pane').forEach(el=>el.classList.remove('active'));
+            document.getElementById('hex-view').classList.add('active');
+            syncTabBytes(tab);
+            Hex.load(tab.bytes);
+          } else if(tab.isImage) {
+            document.querySelectorAll('.view-pane').forEach(el=>el.classList.remove('active'));
+            document.getElementById('image-view').classList.add('active');
+            ImageViewer.load(tab);
+          } else {
+            document.querySelectorAll('.view-pane').forEach(el=>el.classList.remove('active'));
+            document.getElementById('split-view').classList.add('active');
+            cmEditor.setValue(tab.content);
+            cmEditor.setOption('mode', tab.mode);
+            cmEditor.clearHistory();
+            if(tab.isPreviewOpen) {
+              document.getElementById('md-preview').style.display = 'block';
+              updateMarkdownPreview();
+            } else {
+              document.getElementById('md-preview').style.display = 'none';
+            }
+            setTimeout(()=>cmEditor.refresh(), 10);
+          }
+        }
+        UI.renderAll();
+      }
+
+      function closeTab(id, e) {
+        if(e) e.stopPropagation();
+        const tab = state.tabs.find(t=>t.id===id);
+        if(tab && tab.isDirty && !confirm(`Close ${tab.name} without saving?`)) return;
+        
+        state.tabs = state.tabs.filter(t=>t.id!==id);
+        if (tab && (tab.isHex || tab.isImage)) IDB.delete(id);
+        
+        if (state.tabs.length === 0) {
+            createTab(); // Guaranteed to always have an open file
+        } else if (state.activeId === id) {
+            switchTab(state.tabs[state.tabs.length-1].id);
+        } else {
+            UI.renderAll();
+        }
+        Storage.save();
+      }
+
+      function getActiveTab() { return state.tabs.find(t=>t.id===state.activeId); }
+      function getModeForExt(ext) { return MODES[ext] || 'text/plain'; }
+
+      function formatCode() {
+        const tab = getActiveTab();
+        if(!tab || tab.isHex || tab.isImage) return;
+        let code = cmEditor.getValue();
+        try {
+          if(tab.mode === 'javascript' || tab.mode === 'application/json') code = js_beautify(code, { indent_size: 2 });
+          else if(tab.mode === 'htmlmixed') code = html_beautify(code, { indent_size: 2 });
+          else if(tab.mode === 'css') code = css_beautify(code, { indent_size: 2 });
+          else return UI.toast('Formatter not available for this language', 'error');
+          
+          cmEditor.setValue(code);
+          tab.content = code;
+          tab.bytesDirty = true;
+          tab.isDirty = true;
+          UI.renderTabs();
+          UI.toast('Document Formatted');
+        } catch(e) { UI.toast('Formatting failed', 'error'); }
+      }
+
+      function toggleHex() {
+        const tab = getActiveTab(); if(!tab) return;
+        tab.isHex = !tab.isHex;
+        // Image tabs keep bytes as the source of truth; skip text<->byte conversions
+        if(!tab.isImage) {
+          if(tab.isHex) {
+            // Force bytes to mirror the current editor text: programmatic setValue
+            // (base64 encode/decode, format) does not raise a change event, so
+            // syncTabBytes alone can leave stale bytes here.
+            tab.content = cmEditor.getValue();
+            tab.bytes = encodeContent(tab.content, tab.eol, tab.encoding, tab.bom);
+            tab.bytesDirty = false;
+          } else {
+            // Sync text view back from hex view modifications, honoring the tab encoding
+            tab.content = decodeBytes(tab.bytes, tab.encoding, tab.bom);
+          }
+        }
+        switchTab(tab.id);
+      }
+
+      function togglePreview() {
+        const tab = getActiveTab(); if(!tab || tab.mode !== 'markdown') return;
+        tab.isPreviewOpen = !tab.isPreviewOpen;
+        switchTab(tab.id);
+      }
+
+      function updateMarkdownPreview() {
+        const el = document.getElementById('md-preview');
+        const tab = getActiveTab();
+        if(!tab?.isPreviewOpen) return;
+        if(typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {
+          el.textContent = 'Preview unavailable: required rendering libraries failed to load.';
+          return;
+        }
+        const rawHtml = marked.parse(cmEditor.getValue());
+        el.innerHTML = DOMPurify.sanitize(rawHtml);
+      }
+
+      function showHtmlPreview() {
+        const tab = getActiveTab();
+        if (!tab || tab.isHex || tab.isImage) return;
+        
+        const htmlCode = cmEditor.getValue();
+        const frame = document.getElementById('html-preview-frame');
+        frame.srcdoc = htmlCode;
+        document.getElementById('html-preview-modal').classList.add('active');
+      }
+
+      function toggleFullscreenPreview() {
+        const modal = document.querySelector('#html-preview-modal .modal');
+        if (!document.fullscreenElement) {
+          if (modal.requestFullscreen) {
+            modal.requestFullscreen().catch(err => {
+              UI.toast(`Error attempting to enable fullscreen: ${err.message}`, 'error');
+            });
+          } else if (modal.webkitRequestFullscreen) {
+            modal.webkitRequestFullscreen();
+          } else if (modal.msRequestFullscreen) {
+            modal.msRequestFullscreen();
+          }
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+          }
+        }
+      }
+
+      async function shareDataUrl() {
+        const tab = getActiveTab(); if(!tab) return;
+        if(tab.isImage) return UI.toast('Data URL share is not available for images', 'error');
+        if(!window.CompressionStream) return UI.toast('CompressionStream not supported','error');
+        const ok = confirm(
+          'Copy a shareable Data URL?\n\n' +
+          'The link embeds your current content and, when opened, renders AND RUNS it as HTML ' +
+          'in a new browser tab. This is powerful for self-contained demos, but it can execute ' +
+          'scripts.\n\nOnly share it with people you trust. Continue?'
+        );
+        if (!ok) return UI.toast('Share cancelled');
+        
+        try {
+          syncTabBytes(tab);
+          const code = tab.isHex ? decodeBytes(tab.bytes, tab.encoding, tab.bom) : cmEditor.getValue();
+          const stream = new Blob([code]).stream().pipeThrough(new CompressionStream('gzip'));
+          const buffer = await (new Response(stream)).arrayBuffer();
+          // Chunked conversion: spreading the whole buffer into fromCharCode overflows the call stack on large files
+          const u8 = new Uint8Array(buffer);
+          let bin = '';
+          for (let i = 0; i < u8.length; i += 0x8000) {
+            bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+          }
+          const b64Gzip = btoa(bin);
+          
+          const launcher = `<script>(async()=>{const b="${b64Gzip}";const c=new DecompressionStream('gzip');const w=c.writable.getWriter();w.write(Uint8Array.from(atob(b),x=>x.charCodeAt(0)));w.close();const h=await new Response(c.readable).text();document.open();document.write(h);document.close();})();<\/script>`;
+          const finalB64 = btoa(launcher);
+          const url = `data:text/html;charset=utf-8;base64,${finalB64}`;
+          
+          await navigator.clipboard.writeText(url);
+          UI.toast('Compressed Data URL Copied!');
+        } catch(e) { UI.toast('Failed to create share link', 'error'); }
+      }
+
+      const htmlEntities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+      const escapeHtml = s => String(s).replace(/[&<>"']/g, m => htmlEntities[m]);
+
+      function rgbToHex(c) {
+        if (!c) return '#000000';
+        c = c.trim();
+        if (c[0] === '#') return c.length === 4 ? '#' + c[1] + c[1] + c[2] + c[2] + c[3] + c[3] : c.slice(0, 7);
+        const m = c.match(/rgba?\(([^)]+)\)/);
+        if (!m) return '#000000';
+        const p = m[1].split(',').map(x => parseInt(x, 10) || 0);
+        return '#' + [p[0], p[1], p[2]].map(x => Math.max(0, Math.min(255, x)).toString(16).padStart(2, '0')).join('');
+      }
+
+      function formatBytes(n) {
+        if (!n && n !== 0) return '';
+        if (n < 1024) return n + ' B';
+        if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+        return (n / (1024 * 1024)).toFixed(2) + ' MB';
+      }
+
+      const Hex = {
+        load(bytes) {
+          hexState.data = bytes;
+          hexState.selectedIndex = -1;
+          hexState.selEnd = -1;
+          hexState.lastStart = -1; hexState.lastEnd = -1; hexState.lastLen = -1;
+          hexState.searchMatches = [];
+          hexState.searchIndex = -1;
+          hexState.searchLen = 0;
+          const countEl = document.getElementById('hex-search-count');
+          if (countEl) countEl.textContent = '';
+          const container = document.getElementById('hex-scroll-container');
+          const totalRows = Math.ceil(bytes.length / 16) || 1;
+          document.getElementById('hex-spacer').style.height = (totalRows * hexState.rowHeight) + 'px';
+          container.scrollTop = 0;
+          this.renderViewport(true);
+        },
+        renderViewport(force = false) {
+          const container = document.getElementById('hex-scroll-container');
+          const content = document.getElementById('hex-content');
+          const totalRows = Math.ceil(hexState.data.length / 16) || 1;
+          
+          const visibleCount = Math.ceil(container.clientHeight / hexState.rowHeight) + 4;
+          let startRow = Math.floor(container.scrollTop / hexState.rowHeight) - 2;
+          if(startRow < 0) startRow = 0;
+          let endRow = startRow + visibleCount;
+          if(endRow > totalRows) endRow = totalRows;
+
+          // Skip the expensive rebuild when the visible window and data size are unchanged.
+          if (!force && startRow === hexState.lastStart && endRow === hexState.lastEnd && hexState.data.length === hexState.lastLen) return;
+          hexState.lastStart = startRow; hexState.lastEnd = endRow; hexState.lastLen = hexState.data.length;
+
+          // Indexes of search matches that fall inside the rendered window
+          const matchSet = new Set();
+          if (hexState.searchMatches.length && hexState.searchLen) {
+            const lo = startRow * 16, hi = endRow * 16;
+            for (const s of hexState.searchMatches) {
+              const e = s + hexState.searchLen - 1;
+              if (e < lo) continue;
+              if (s >= hi) break;
+              for (let k = Math.max(s, lo); k <= Math.min(e, hi - 1); k++) matchSet.add(k);
+            }
+          }
+          const selActive = hexState.selectedIndex >= 0;
+
+          content.style.transform = `translateY(${startRow * hexState.rowHeight}px)`;
+          
+          let rowsHtml = [];
+          for(let r=startRow; r<endRow; r++) {
+            let offset = (r*16).toString(16).padStart(8,'0').toUpperCase();
+            let hex1=[], hex2=[], ascii1=[], ascii2=[];
+            for(let i=0; i<16; i++) {
+              let idx = r*16 + i;
+              if(idx < hexState.data.length) {
+                let val = hexState.data[idx];
+                let hexStr = val.toString(16).padStart(2,'0').toUpperCase();
+                
+                let rawChar = (val>=32 && val<=126) ? String.fromCharCode(val) : '.';
+                let char = rawChar.replace(/[&<>"']/g, match => htmlEntities[match]);
+                let sel = (selActive && idx >= hexState.selectedIndex && idx <= hexState.selEnd) ? 'sel' : '';
+                let match = matchSet.has(idx) ? 'match' : '';
+                
+                let hCell = `<div class="cell ${match} ${sel}" data-idx="${idx}" data-action="select-hex">${hexStr}</div>`;
+                let aCell = `<div class="cell ${match} ${sel}" data-idx="${idx}" data-action="select-hex">${char}</div>`;
+                
+                if(i<8) { hex1.push(hCell); ascii1.push(aCell); } 
+                else { hex2.push(hCell); ascii2.push(aCell); }
+              } else {
+                let hCell = `<div class="cell">..</div>`;
+                let aCell = `<div class="cell">&nbsp;</div>`;
+                if(i<8) { hex1.push(hCell); ascii1.push(aCell); } 
+                else { hex2.push(hCell); ascii2.push(aCell); }
+              }
+            }
+            rowsHtml.push(`
+              <div class="hex-row-group">
+                <div class="hex-sub-row">
+                  <div class="offset">${offset}</div>
+                  <div class="bytes hex-data">${hex1.join('')}<div class="gap"></div>${hex2.join('')}</div>
+                </div>
+                <div class="hex-sub-row">
+                  <div class="offset empty"></div>
+                  <div class="bytes text-data">${ascii1.join('')}<div class="gap"></div>${ascii2.join('')}</div>
+                </div>
+              </div>
+            `);
+          }
+          content.innerHTML = rowsHtml.join('');
+        },
+        // Patch a single byte's hex + ASCII cells in place instead of a full re-render.
+        updateCell(idx) {
+          const val = hexState.data[idx];
+          if (val === undefined) return;
+          const hexStr = val.toString(16).padStart(2,'0').toUpperCase();
+          const rawChar = (val>=32 && val<=126) ? String.fromCharCode(val) : '.';
+          document.querySelectorAll(`#hex-content .cell[data-idx="${idx}"]`).forEach(c => {
+            c.textContent = c.closest('.hex-data') ? hexStr : rawChar;
+          });
+        },
+        updateSelection() {
+          document.querySelectorAll('#hex-content .cell.sel').forEach(c => c.classList.remove('sel'));
+          if (hexState.selectedIndex < 0) return;
+          for (let idx = hexState.selectedIndex; idx <= hexState.selEnd; idx++) {
+            document.querySelectorAll(`#hex-content .cell[data-idx="${idx}"]`).forEach(c => c.classList.add('sel'));
+          }
+        },
+        ensureVisible(idx) {
+          const container = document.getElementById('hex-scroll-container');
+          const rowTop = Math.floor(idx / 16) * hexState.rowHeight;
+          const rowBottom = rowTop + hexState.rowHeight;
+          if (rowTop < container.scrollTop) container.scrollTop = rowTop;
+          else if (rowBottom > container.scrollTop + container.clientHeight) container.scrollTop = rowBottom - container.clientHeight;
+          // If the target cell is outside the rendered window, force a rebuild.
+          if (!document.querySelector(`#hex-content .cell[data-idx="${idx}"]`)) this.renderViewport(true);
+        },
+        select(idx, endIdx) {
+          const max = hexState.data.length - 1;
+          if (max < 0) { hexState.selectedIndex = -1; hexState.selEnd = -1; return; }
+          const start = Math.max(0, Math.min(max, idx));
+          const end = (endIdx === undefined) ? start : Math.max(start, Math.min(max, endIdx));
+          hexState.selectedIndex = start;
+          hexState.selEnd = end;
+          hexState.editNibble = 0;
+          this.updateSelection();
+          this.ensureVisible(start);
+          UI.updateStatusBar();
+          const hexInput = document.getElementById('hex-hidden-input');
+          if(hexInput) hexInput.focus();
+        },
+
+        // --- Search ---
+        parseSearchQuery(raw) {
+          let q = String(raw || '').trim();
+          if (!q) return null;
+          let forceText = false, forceHex = false;
+          if (/^text:/i.test(q)) { forceText = true; q = q.slice(5).trim(); }
+          else if (/^hex:/i.test(q)) { forceHex = true; q = q.slice(4).trim(); }
+          if (!q) return null;
+          const compact = q.replace(/\s+/g, '').replace(/^0x/i, '');
+          const allHex = /^[0-9a-fA-F]+$/.test(compact);
+          if (!forceText && (forceHex || (allHex && compact.length % 2 === 0))) {
+            if (!allHex || compact.length % 2 !== 0) return null;
+            const bytes = new Uint8Array(compact.length / 2);
+            for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(compact.substr(i * 2, 2), 16);
+            return bytes;
+          }
+          return new TextEncoder().encode(q);
+        },
+
+        runSearch() {
+          const input = document.getElementById('hex-search-input');
+          const countEl = document.getElementById('hex-search-count');
+          if (!input) return;
+          const needle = this.parseSearchQuery(input.value);
+          hexState.searchMatches = [];
+          hexState.searchIndex = -1;
+          hexState.searchLen = needle ? needle.length : 0;
+          const data = hexState.data;
+          if (!needle || !needle.length || !data.length) {
+            if (countEl) countEl.textContent = input.value.trim() ? 'No match' : '';
+            this.renderViewport(true);
+            return;
+          }
+          const first = needle[0];
+          const maxMatches = 10000;
+          for (let i = 0; i <= data.length - needle.length && hexState.searchMatches.length < maxMatches; i++) {
+            if (data[i] !== first) continue;
+            let ok = true;
+            for (let j = 1; j < needle.length; j++) {
+              if (data[i + j] !== needle[j]) { ok = false; break; }
+            }
+            if (ok) hexState.searchMatches.push(i);
+          }
+          if (hexState.searchMatches.length) {
+            const cur = hexState.selectedIndex;
+            let idx = 0;
+            if (cur >= 0) { const found = hexState.searchMatches.findIndex(s => s >= cur); idx = found >= 0 ? found : 0; }
+            hexState.searchIndex = idx;
+            this.renderViewport(true);
+            this.selectMatch();
+          } else {
+            if (countEl) countEl.textContent = 'No match';
+            this.renderViewport(true);
+          }
+        },
+
+        selectMatch() {
+          const m = hexState.searchMatches[hexState.searchIndex];
+          if (m === undefined) return;
+          this.select(m, m + hexState.searchLen - 1);
+          const countEl = document.getElementById('hex-search-count');
+          if (countEl) countEl.textContent = (hexState.searchIndex + 1) + '/' + hexState.searchMatches.length;
+        },
+
+        searchNext(dir) {
+          if (!hexState.searchMatches.length) { this.runSearch(); return; }
+          const n = hexState.searchMatches.length;
+          hexState.searchIndex = ((hexState.searchIndex + dir) % n + n) % n;
+          this.selectMatch();
+        },
+
+        // --- Insert / delete bytes ---
+        applyData(newData) {
+          const tab = getActiveTab();
+          hexState.data = newData;
+          if (tab) { tab.bytes = newData; tab.isDirty = true; tab.bytesDirty = false; }
+          hexState.lastLen = -1;
+          const totalRows = Math.ceil(newData.length / 16) || 1;
+          document.getElementById('hex-spacer').style.height = (totalRows * hexState.rowHeight) + 'px';
+          this.renderViewport(true);
+          if (tab) UI.renderTabs();
+          UI.updateStatusBar();
+          Storage.debouncedSave();
+          const q = document.getElementById('hex-search-input');
+          if (q && q.value.trim()) this.runSearch();
+        },
+
+        insertByte() {
+          const data = hexState.data;
+          const at = hexState.selectedIndex >= 0 ? hexState.selectedIndex : data.length;
+          const out = new Uint8Array(data.length + 1);
+          out.set(data.subarray(0, at), 0);
+          out[at] = 0;
+          out.set(data.subarray(at), at + 1);
+          this.applyData(out);
+          this.select(at);
+          UI.toast('Inserted byte 0x00 at 0x' + at.toString(16).toUpperCase());
+        },
+
+        deleteByte() {
+          const data = hexState.data;
+          if (!data.length) return;
+          const at = hexState.selectedIndex >= 0 ? hexState.selectedIndex : 0;
+          const out = new Uint8Array(data.length - 1);
+          out.set(data.subarray(0, at), 0);
+          out.set(data.subarray(at + 1), at);
+          this.applyData(out);
+          if (out.length) this.select(Math.min(at, out.length - 1));
+          else { hexState.selectedIndex = -1; hexState.selEnd = -1; this.renderViewport(true); UI.updateStatusBar(); }
+          UI.toast('Deleted byte at 0x' + at.toString(16).toUpperCase());
+        },
+
+        handleKey(e) {
+          const tab = getActiveTab();
+          if(!tab || !tab.isHex || hexState.selectedIndex === -1) return;
+          const k = e.key;
+          const max = hexState.data.length - 1;
+          
+          let handled = false;
+
+          if(k === 'ArrowRight') { this.select(Math.min(max, hexState.selectedIndex+1)); handled = true; }
+          else if(k === 'ArrowLeft') { this.select(Math.max(0, hexState.selectedIndex-1)); handled = true; }
+          else if(k === 'ArrowDown') { this.select(Math.min(max, hexState.selectedIndex+16)); handled = true; }
+          else if(k === 'ArrowUp') { this.select(Math.max(0, hexState.selectedIndex-16)); handled = true; }
+          else if(k === 'Delete') { this.deleteByte(); handled = true; }
+          else if(k === 'Insert') { this.insertByte(); handled = true; }
+          else if(/^[0-9a-fA-F]$/.test(k)) {
+            let val = parseInt(k, 16);
+            let idx = hexState.selectedIndex;
+            let b = hexState.data[idx];
+            if(hexState.editNibble === 0) { b = (val<<4)|(b&0x0F); hexState.editNibble=1; }
+            else { b = (b&0xF0)|val; hexState.editNibble=0; }
+            hexState.data[idx] = b;
+            hexState.selEnd = idx; // collapse any multi-byte selection to the edited byte
+            tab.isDirty = true;
+            tab.bytesDirty = false; // bytes are the source of truth while in hex view
+            this.updateCell(idx);
+            this.updateSelection();
+            UI.renderTabs();
+            Storage.debouncedSave();
+            if(hexState.editNibble === 0) this.select(Math.min(max, idx+1));
+            handled = true;
+          }
+
+          if (handled && typeof e.preventDefault === 'function') {
+            e.preventDefault();
+          }
+        }
+      };
+
+      const defaultImgEdits = () => ({
+        brightness: 100, contrast: 100, saturate: 100, quality: 92,
+        grayscale: false, invert: false, sepia: false,
+        rotate: 0, flipH: false, flipV: false
+      });
+
+      function buildImgFilter(e) {
+        const f = [];
+        if (e.brightness !== 100) f.push(`brightness(${e.brightness}%)`);
+        if (e.contrast !== 100) f.push(`contrast(${e.contrast}%)`);
+        if (e.saturate !== 100) f.push(`saturate(${e.saturate}%)`);
+        if (e.grayscale) f.push('grayscale(100%)');
+        if (e.invert) f.push('invert(100%)');
+        if (e.sepia) f.push('sepia(100%)');
+        return f.length ? f.join(' ') : 'none';
+      }
+
+      // Minimal 24-bit BMP encoder (canvas.toBlob cannot produce BMP)
+      function encodeBMP(canvas, ctx) {
+        const w = canvas.width, h = canvas.height;
+        const data = ctx.getImageData(0, 0, w, h).data;
+        const rowSize = w * 3, padding = (4 - (rowSize % 4)) % 4;
+        const pixelArraySize = (rowSize + padding) * h;
+        const fileSize = 54 + pixelArraySize;
+        const buf = new ArrayBuffer(fileSize);
+        const dv = new DataView(buf);
+        dv.setUint8(0, 0x42); dv.setUint8(1, 0x4D);              // 'BM'
+        dv.setUint32(2, fileSize, true);
+        dv.setUint32(10, 54, true);                             // pixel data offset
+        dv.setUint32(14, 40, true);                             // BITMAPINFOHEADER size
+        dv.setInt32(18, w, true);
+        dv.setInt32(22, h, true);                               // positive height = bottom-up rows
+        dv.setUint16(26, 1, true);                              // planes
+        dv.setUint16(28, 24, true);                             // bits per pixel
+        dv.setUint32(34, pixelArraySize, true);
+        const u8 = new Uint8Array(buf);
+        let o = 54;
+        for (let y = h - 1; y >= 0; y--) {
+          for (let x = 0; x < w; x++) {
+            const i = (y * w + x) * 4;
+            u8[o++] = data[i + 2]; // B
+            u8[o++] = data[i + 1]; // G
+            u8[o++] = data[i];     // R
+          }
+          o += padding;
+        }
+        return new Blob([buf], { type: 'image/bmp' });
+      }
+
+      // Bake the tab's non-destructive edits into pixels of the target format
+      function renderEditedImage(tab, targetMime, quality) {
+        return new Promise((resolve, reject) => {
+          const e = tab.imgEdits || defaultImgEdits();
+          const src = new Image();
+          const srcUrl = URL.createObjectURL(new Blob([tab.bytes]));
+          src.onload = () => {
+            URL.revokeObjectURL(srcUrl);
+            try {
+              if (!src.naturalWidth || !src.naturalHeight) throw new Error('image has no dimensions');
+              const rot = ((e.rotate % 360) + 360) % 360;
+              const swap = rot === 90 || rot === 270;
+              const canvas = document.createElement('canvas');
+              canvas.width = swap ? src.naturalHeight : src.naturalWidth;
+              canvas.height = swap ? src.naturalWidth : src.naturalHeight;
+              const ctx = canvas.getContext('2d');
+              // JPEG and BMP have no alpha channel: flatten onto white first
+              if (targetMime === 'image/jpeg' || targetMime === 'image/bmp') {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+              }
+              ctx.filter = buildImgFilter(e);
+              ctx.translate(canvas.width / 2, canvas.height / 2);
+              ctx.rotate(rot * Math.PI / 180);
+              ctx.scale(e.flipH ? -1 : 1, e.flipV ? -1 : 1);
+              ctx.drawImage(src, -src.naturalWidth / 2, -src.naturalHeight / 2);
+              if (targetMime === 'image/bmp') return resolve(encodeBMP(canvas, ctx));
+              canvas.toBlob(
+                b => b ? resolve(b) : reject(new Error(targetMime + ' encoding not supported by this browser')),
+                targetMime, quality / 100
+              );
+            } catch (err) { reject(err); }
+          };
+          src.onerror = () => { URL.revokeObjectURL(srcUrl); reject(new Error('could not decode image')); };
+          src.src = srcUrl;
+        });
+      }
+
+      const ImageViewer = {
+        url: null,
+        zoom: 1,
+        load(tab) {
+          if (this.url) { URL.revokeObjectURL(this.url); this.url = null; }
+          const ext = tab.name.split('.').pop().toLowerCase();
+          const blob = new Blob([tab.bytes], { type: IMAGE_MIMES[ext] || 'application/octet-stream' });
+          this.url = URL.createObjectURL(blob);
+          const img = document.getElementById('image-view-img');
+          img.onload = () => { this.fit(); UI.updateStatusBar(); };
+          img.src = this.url;
+          this.applyEdits();
+        },
+        // Effective (post-rotation) source dimensions
+        dims() {
+          const img = document.getElementById('image-view-img');
+          const tab = getActiveTab();
+          const e = (tab && tab.imgEdits) || defaultImgEdits();
+          const swap = ((e.rotate % 180) + 180) % 180 !== 0;
+          return { w: swap ? img.naturalHeight : img.naturalWidth, h: swap ? img.naturalWidth : img.naturalHeight };
+        },
+        apply() {
+          const img = document.getElementById('image-view-img');
+          const d = this.dims();
+          if (d.w) img.style.width = (d.w * this.zoom) + 'px';
+          document.getElementById('image-zoom-lbl').textContent = Math.round(this.zoom * 100) + '%';
+        },
+        fit() {
+          const canvas = document.getElementById('image-canvas');
+          const d = this.dims();
+          this.zoom = 1;
+          if (d.w && d.h && canvas.clientWidth && canvas.clientHeight) {
+            this.zoom = Math.min(1, (canvas.clientWidth - 48) / d.w, (canvas.clientHeight - 48) / d.h);
+          }
+          this.apply();
+        },
+        actual() { this.zoom = 1; this.apply(); },
+        zoomIn() { this.zoom = Math.min(this.zoom * 1.25, 32); this.apply(); },
+        zoomOut() { this.zoom = Math.max(this.zoom / 1.25, 0.02); this.apply(); },
+
+        edits() {
+          const tab = getActiveTab();
+          if (tab && tab.isImage && !tab.imgEdits) tab.imgEdits = defaultImgEdits();
+          return (tab && tab.isImage) ? tab.imgEdits : null;
+        },
+        setEdit(key, value) {
+          const tab = getActiveTab();
+          const e = this.edits();
+          if (!tab || !e) return;
+          e[key] = value;
+          tab.isDirty = true;
+          this.applyEdits();
+          UI.renderTabs();
+          Storage.debouncedSave();
+        },
+        toggleEdit(key) {
+          const e = this.edits();
+          if (e) this.setEdit(key, !e[key]);
+        },
+        rotateBy(deg) {
+          const e = this.edits();
+          if (e) this.setEdit('rotate', (((e.rotate + deg) % 360) + 360) % 360);
+        },
+        resetEdits() {
+          const tab = getActiveTab();
+          if (!tab || !tab.isImage) return;
+          tab.imgEdits = defaultImgEdits();
+          tab.isDirty = true;
+          this.applyEdits();
+          UI.renderTabs();
+          Storage.debouncedSave();
+        },
+        applyEdits() {
+          const tab = getActiveTab();
+          if (!tab || !tab.isImage) return;
+          const e = tab.imgEdits || defaultImgEdits();
+          const img = document.getElementById('image-view-img');
+          img.style.filter = buildImgFilter(e);
+          img.style.transform = `rotate(${e.rotate}deg) scale(${e.flipH ? -1 : 1}, ${e.flipV ? -1 : 1})`;
+          ['brightness','contrast','saturate','quality'].forEach(k => {
+            const s = document.getElementById('img-' + k);
+            const l = document.getElementById('img-' + k + '-lbl');
+            if (s) s.value = e[k];
+            if (l) l.textContent = e[k];
+          });
+          ['grayscale','invert','sepia'].forEach(k => {
+            const b = document.getElementById('img-' + k);
+            if (b) b.classList.toggle('active', !!e[k]);
+          });
+          this.apply(); // rotation may swap effective dimensions
+        }
+      };
+
+      const UI = {
+        renderAll() { this.renderTabs(); this.updateStatusBar(); },
+        updateBreadcrumb() {
+          const tab = getActiveTab();
+          document.getElementById('bc-filename').textContent = tab ? tab.name : '';
+          document.title = tab ? tab.name + (tab.isDirty ? ' *' : '') + ' — JustEdit Pro' : 'JustEdit Pro';
+        },
+        renderTabs() {
+          const bar = document.getElementById('tabs-bar');
+          bar.innerHTML = state.tabs.map(t => `
+            <div class="tab ${t.id === state.activeId ? 'active' : ''}" data-action="switch-tab" data-tab-id="${t.id}">
+              <i data-lucide="${t.isImage ? 'image' : (t.isHex ? 'binary' : 'file-code')}" size="14"></i>
+              <span class="tab-title">${escapeHtml(t.name)}</span>
+              ${t.isDirty ? '<div style="width:6px;height:6px;border-radius:50%;background:var(--text-main);"></div>' : ''}
+              <button class="tab-close" data-action="close-tab" data-tab-id="${t.id}" aria-label="Close ${escapeHtml(t.name)}"><i data-lucide="x" size="14"></i></button>
+            </div>
+          `).join('') + `
+            <button class="tab-add" data-action="new-file" title="New File" aria-label="New File"><i data-lucide="plus" size="18"></i></button>
+          `;
+          lucide.createIcons();
+          
+          const active = bar.querySelector('.active');
+          if(active) active.scrollIntoView({behavior: "smooth", inline: "center"});
+          this.updateBreadcrumb();
+        },
+        updateStatusBar() {
+          const tab = getActiveTab();
+          if(!tab) return;
+          const langEl = document.getElementById('sb-lang');
+          const eolEl = document.getElementById('sb-eol');
+          const encEl = document.getElementById('sb-encoding');
+          const statusEl = document.getElementById('sb-status');
+          const isNewFile = /^new-\d+$/.test(tab.name) && !tab.fileHandle;
+          statusEl.textContent = (tab.isDirty || isNewFile) ? 'Unsaved' : 'Saved';
+
+          if(tab.isHex) {
+            langEl.textContent = 'Hex';
+            eolEl.textContent = '—';
+            eolEl.style.cursor = 'default';
+            eolEl.removeAttribute('role');
+            encEl.textContent = '—';
+            encEl.style.cursor = 'default';
+            encEl.removeAttribute('role');
+            document.getElementById('sb-cursor').textContent = `Offset: 0x${(hexState.selectedIndex >= 0 ? hexState.selectedIndex : 0).toString(16).toUpperCase()}`;
+            document.getElementById('sb-size').textContent = `${tab.bytes.length} Bytes`;
+            document.getElementById('sb-hex-lbl').style.display = 'flex';
+          } else if(tab.isImage) {
+            langEl.textContent = 'Image';
+            eolEl.textContent = '—';
+            eolEl.style.cursor = 'default';
+            eolEl.removeAttribute('role');
+            encEl.textContent = (tab.name.split('.').pop() || '').toUpperCase() || '—';
+            encEl.style.cursor = 'default';
+            encEl.removeAttribute('role');
+            const img = document.getElementById('image-view-img');
+            document.getElementById('sb-cursor').textContent = (img && img.naturalWidth) ? `${img.naturalWidth} × ${img.naturalHeight} px` : 'Image';
+            document.getElementById('sb-size').textContent = `${tab.bytes.length} Bytes`;
+            document.getElementById('sb-hex-lbl').style.display = 'none';
+            const metaEl = document.getElementById('img-meta');
+            if (metaEl) {
+              const fmt = (tab.name.split('.').pop() || '').toUpperCase();
+              metaEl.textContent = (img && img.naturalWidth ? img.naturalWidth + '×' + img.naturalHeight + ' · ' : '') + (fmt || '?') + ' · ' + formatBytes(tab.bytes.length);
+            }
+          } else {
+            langEl.textContent = languageLabel(tab.mode);
+            eolEl.textContent = tab.eol || detectEol(cmEditor.getValue());
+            eolEl.style.cursor = 'pointer';
+            eolEl.setAttribute('role', 'button');
+            encEl.textContent = (tab.encoding || 'UTF-8') + (tab.bom ? ' BOM' : '');
+            encEl.style.cursor = 'pointer';
+            encEl.setAttribute('role', 'button');
+            const cursor = cmEditor.getCursor();
+            const lines = cmEditor.lineCount();
+            document.getElementById('sb-cursor').textContent = `Ln ${cursor.line+1}, Col ${cursor.ch+1}`;
+            document.getElementById('sb-size').textContent = `${lines} Lines`;
+            document.getElementById('sb-hex-lbl').style.display = 'none';
+            
+            const menuSel = document.getElementById('menu-mode-select');
+            const mode = tab.mode;
+            
+            if(menuSel && Array.from(menuSel.options).some(o => o.value === mode)) {
+              menuSel.value = mode;
+            } else if (menuSel) {
+              menuSel.value = 'text/plain';
+            }
+          }
+        },
+        toggleEditMenu(e) {
+          e.stopPropagation();
+          const menu = document.getElementById('edit-menu');
+          menu.classList.toggle('active');
+        },
+        closeModals() {
+          document.querySelectorAll('.overlay').forEach(el => el.classList.remove('active'));
+          EditorActions.clearMatches();
+          if (document.fullscreenElement) {
+            document.exitFullscreen().catch(()=>{});
+          }
+        },
+        setTheme(theme) {
+          state.theme = theme;
+          applyThemeVars(theme);
+          Storage.save();
+          rebuildThemeSelect();
+        },
+        toast(msg, type='info') {
+          const t = document.createElement('div');
+          t.className = 'toast';
+          t.innerHTML = `<i data-lucide="${type==='error'?'alert-circle':'check-circle'}" size="16" style="color:var(--accent);"></i> ${escapeHtml(msg)}`;
+          document.getElementById('toast-container').appendChild(t);
+          lucide.createIcons();
+          requestAnimationFrame(()=>t.classList.add('show'));
+          setTimeout(() => { t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 2500);
+        }
+      };
+
+      document.querySelectorAll('.overlay').forEach(el => {
+        el.addEventListener('click', e => { if(e.target === el) UI.closeModals(); });
+      });
+
+      // --- IndexedDB backend for binary tab payloads (hex/image bytes) ---
+      // Text content and preferences stay in localStorage; only large/binary
+      // payloads go here so we never serialize byte arrays as JSON number lists.
+      const IDB = {
+        DB_NAME: 'justedit-pro',
+        STORE: 'binary',
+        HANDLE_STORE: 'handles',
+        db: null,
+        _opening: null,
+        open() {
+          if (this._opening) return this._opening;
+          this._opening = new Promise(resolve => {
+            if (!('indexedDB' in window)) return resolve(null);
+            let req;
+            try { req = indexedDB.open(this.DB_NAME, 2); }
+            catch (e) { return resolve(null); }
+            req.onupgradeneeded = () => {
+              const db = req.result;
+              if (!db.objectStoreNames.contains(this.STORE)) db.createObjectStore(this.STORE);
+              if (!db.objectStoreNames.contains(this.HANDLE_STORE)) db.createObjectStore(this.HANDLE_STORE, { keyPath: 'key' });
+            };
+            req.onsuccess = () => { this.db = req.result; resolve(this.db); };
+            req.onerror = () => resolve(null);
+            req.onblocked = () => resolve(null);
+          });
+          return this._opening;
+        },
+        put(id, bytes) {
+          if (!this.db) return Promise.resolve(false);
+          return new Promise(resolve => {
+            try {
+              const tx = this.db.transaction(this.STORE, 'readwrite');
+              tx.objectStore(this.STORE).put(bytes, id);
+              tx.oncomplete = () => resolve(true);
+              tx.onerror = tx.onabort = () => resolve(false);
+            } catch (e) { resolve(false); }
+          });
+        },
+        get(id) {
+          if (!this.db) return Promise.resolve(null);
+          return new Promise(resolve => {
+            try {
+              const tx = this.db.transaction(this.STORE, 'readonly');
+              const r = tx.objectStore(this.STORE).get(id);
+              r.onsuccess = () => resolve(r.result ? new Uint8Array(r.result) : null);
+              r.onerror = () => resolve(null);
+            } catch (e) { resolve(null); }
+          });
+        },
+        delete(id) {
+          if (!this.db) return Promise.resolve(false);
+          return new Promise(resolve => {
+            try {
+              const tx = this.db.transaction(this.STORE, 'readwrite');
+              tx.objectStore(this.STORE).delete(id);
+              tx.oncomplete = () => resolve(true);
+              tx.onerror = tx.onabort = () => resolve(false);
+            } catch (e) { resolve(false); }
+          });
+        },
+        // --- File/directory handle persistence (File System Access API) ---
+        putHandle(record) {
+          if (!this.db) return Promise.resolve(false);
+          return new Promise(resolve => {
+            try {
+              const tx = this.db.transaction(this.HANDLE_STORE, 'readwrite');
+              tx.objectStore(this.HANDLE_STORE).put(record);
+              tx.oncomplete = () => resolve(true);
+              tx.onerror = tx.onabort = () => resolve(false);
+            } catch (e) { resolve(false); }
+          });
+        },
+        getHandle(key) {
+          if (!this.db) return Promise.resolve(null);
+          return new Promise(resolve => {
+            try {
+              const tx = this.db.transaction(this.HANDLE_STORE, 'readonly');
+              const r = tx.objectStore(this.HANDLE_STORE).get(key);
+              r.onsuccess = () => resolve(r.result || null);
+              r.onerror = () => resolve(null);
+            } catch (e) { resolve(null); }
+          });
+        },
+        getAllHandles() {
+          if (!this.db) return Promise.resolve([]);
+          return new Promise(resolve => {
+            try {
+              const tx = this.db.transaction(this.HANDLE_STORE, 'readonly');
+              const r = tx.objectStore(this.HANDLE_STORE).getAll();
+              r.onsuccess = () => resolve(r.result || []);
+              r.onerror = () => resolve([]);
+            } catch (e) { resolve([]); }
+          });
+        },
+        deleteHandle(key) {
+          if (!this.db) return Promise.resolve(false);
+          return new Promise(resolve => {
+            try {
+              const tx = this.db.transaction(this.HANDLE_STORE, 'readwrite');
+              tx.objectStore(this.HANDLE_STORE).delete(key);
+              tx.oncomplete = () => resolve(true);
+              tx.onerror = tx.onabort = () => resolve(false);
+            } catch (e) { resolve(false); }
+          });
+        }
+      };
+
+      const STORAGE_SCHEMA = '2';
+
+      const Storage = {
+        timer: null,
+        quotaWarned: false,
+        failed: false,
+        suspend: false,
+        useIDB: false,
+        debouncedSave() { clearTimeout(this.timer); this.timer = setTimeout(() => this.save(), 1000); },
+        save() {
+          if (this.suspend) return;
+          try {
+            const order = [];
+            const safeTabs = state.tabs.map(t => {
+              syncTabBytes(t);
+              order.push(t.id);
+              const isBin = t.isHex || t.isImage;
+              const meta = {
+                id: t.id,
+                name: t.name,
+                content: isBin ? '' : t.content,
+                mode: t.mode,
+                isHex: t.isHex,
+                isImage: t.isImage,
+                isDirty: t.isDirty,
+                imgEdits: t.isImage ? (t.imgEdits || null) : null,
+                eol: isBin ? undefined : (t.eol || 'LF'),
+                encoding: isBin ? undefined : (t.encoding || 'UTF-8'),
+                bom: isBin ? undefined : !!t.bom
+              };
+              if (isBin) {
+                if (this.useIDB) IDB.put(t.id, t.bytes); // async, best-effort
+                else meta.bytes = Array.from(t.bytes);   // fallback when IndexedDB is unavailable
+              }
+              return meta;
+            });
+            localStorage.setItem('je_pro_tabs', JSON.stringify(safeTabs));
+            localStorage.setItem('je_pro_order', JSON.stringify(order));
+            localStorage.setItem('je_pro_active', state.activeId || '');
+            localStorage.setItem('je_pro_theme', state.theme);
+            localStorage.setItem('je_pro_prefs', JSON.stringify(state.prefs));
+            localStorage.setItem('je_pro_schema', STORAGE_SCHEMA);
+            this.failed = false;
+          } catch(e) {
+            console.warn("Storage quota exceeded", e);
+            this.failed = true;
+            if (!this.quotaWarned) {
+              this.quotaWarned = true;
+              UI.toast('Session too large to persist — storage quota exceeded', 'error');
+            }
+          }
+        },
+
+        // One-time migration from schema v1 (byte arrays embedded in localStorage JSON).
+        async migrate() {
+          if (localStorage.getItem('je_pro_schema') === STORAGE_SCHEMA) return;
+          const raw = localStorage.getItem('je_pro_tabs');
+          if (!raw) { localStorage.setItem('je_pro_schema', STORAGE_SCHEMA); return; }
+          if (!this.useIDB) { localStorage.setItem('je_pro_schema', STORAGE_SCHEMA); return; }
+          let old;
+          try { old = JSON.parse(raw); } catch (e) { localStorage.setItem('je_pro_schema', STORAGE_SCHEMA); return; }
+          if (!Array.isArray(old)) { localStorage.setItem('je_pro_schema', STORAGE_SCHEMA); return; }
+
+          const order = [];
+          const meta = [];
+          for (const t of old) {
+            order.push(t.id);
+            const isBin = t.isHex || t.isImage;
+            if (isBin && t.bytes) await IDB.put(t.id, new Uint8Array(t.bytes));
+            meta.push({
+              id: t.id, name: t.name,
+              content: isBin ? '' : (t.content || ''),
+              mode: t.mode, isHex: t.isHex, isImage: t.isImage,
+              isDirty: t.isDirty, imgEdits: t.imgEdits || null
+            });
+          }
+          localStorage.setItem('je_pro_tabs', JSON.stringify(meta));
+          localStorage.setItem('je_pro_order', JSON.stringify(order));
+          localStorage.setItem('je_pro_schema', STORAGE_SCHEMA);
+        },
+
+        applyTheme() {
+          try {
+            const raw = localStorage.getItem('je_pro_custom_themes');
+            if (raw) state.customThemes = JSON.parse(raw) || {};
+          } catch (e) { /* ignore */ }
+          const theme = localStorage.getItem('je_pro_theme') || 'dracula';
+          state.theme = theme;
+          applyThemeVars(theme);
+          rebuildThemeSelect();
+        },
+
+        async load() {
+          this.suspend = true;
+          try {
+            await IDB.open();
+            this.useIDB = !!IDB.db;
+            await this.migrate();
+
+            this.applyTheme();
+            try {
+              const rawPrefs = localStorage.getItem('je_pro_prefs');
+              if (rawPrefs) state.prefs = { ...DEFAULT_PREFS, ...JSON.parse(rawPrefs) };
+            } catch (e) { /* ignore bad prefs */ }
+            applyPrefs();
+            syncPrefControls();
+
+            let parsed = null;
+            const saved = localStorage.getItem('je_pro_tabs');
+            if (saved) {
+              try { parsed = JSON.parse(saved); } catch (e) { console.error("Storage corrupt", e); }
+            }
+
+            if (Array.isArray(parsed) && parsed.length) {
+              state.tabs = parsed.map(t => ({
+                ...t,
+                bytesDirty: false,
+                isPreviewOpen: false,
+                eol: (!t.isHex && !t.isImage) ? (t.eol || detectEol(t.content || '')) : 'LF',
+                encoding: t.encoding || 'UTF-8',
+                bom: !!t.bom,
+                bytes: (!t.isHex && !t.isImage)
+                  ? encodeContent(t.content || '', t.eol || 'LF', t.encoding || 'UTF-8', !!t.bom)
+                  : new Uint8Array(t.bytes || 0)
+              }));
+              // Restore tab order captured at save time
+              try {
+                const order = JSON.parse(localStorage.getItem('je_pro_order') || '[]');
+                if (order.length) {
+                  const byId = new Map(state.tabs.map(t => [t.id, t]));
+                  const ordered = order.map(id => byId.get(id)).filter(Boolean);
+                  state.tabs.forEach(t => { if (!order.includes(t.id)) ordered.push(t); });
+                  state.tabs = ordered;
+                }
+              } catch (e) { /* ignore bad order */ }
+
+              state.activeId = localStorage.getItem('je_pro_active');
+              if (state.tabs.length) {
+                switchTab(state.tabs.some(t => t.id === state.activeId) ? state.activeId : state.tabs[0].id);
+              } else {
+                createTab();
+              }
+              this.suspend = false;
+              // Hydrate binary payloads from IndexedDB asynchronously
+              this.hydrateBinaries();
+              return;
+            }
+          } catch (e) {
+            console.error("Storage load failed", e);
+          }
+          this.suspend = false;
+          createTab();
+        },
+
+        async hydrateBinaries() {
+          const binTabs = state.tabs.filter(t => t.isHex || t.isImage);
+          for (const t of binTabs) {
+            const bytes = await IDB.get(t.id);
+            if (!bytes) continue;
+            t.bytes = bytes;
+            t.bytesDirty = false;
+            if (state.activeId === t.id) switchTab(t.id);
+          }
+        }
+      };
+
+
+      return {
+        init, createTab, switchTab, closeTab, openFile, openFolder, openFromHandle, saveFile, executeSave, setMode,
+        formatCode, toggleHex, togglePreview, showHtmlPreview, toggleFullscreenPreview,
+        shareDataUrl, openDataUrl, processDataUrl, UI, Hex, EditorActions, ImageViewer, Sidebar,
+        Palette, ThemeEditor, Crop, ImageResize
+      };
+
+    })();
+
+    document.addEventListener('DOMContentLoaded', App.init);
+  </script>
+</body>
+</html>
