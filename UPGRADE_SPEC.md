@@ -338,3 +338,14 @@ Regression gates for every phase:
   status bar, save, and hex round-trip; image crop with pointer-drag handles, aspect-locked
   resize, and a dimensions/format/size metadata readout. Verified all four on a 390×844 viewport
   and added regression coverage. Fixed hex→text decoding to honor the tab encoding.*
+- *Hardening pass: theme-editor live preview now reverts on close (no leaked inline
+  overrides); hex row geometry scales with the editor font size (em-based columns +
+  `--hex-row-height`, virtualization kept in sync); saving image adjustments to a format
+  that cannot store them now warns before writing the unedited original; editor shortcuts
+  are gated to editor focus so they no longer hijack typing (Ctrl/Cmd+S stays global);
+  Content-Security-Policy tightened from a blanket `https:` to the exact CDN/font hosts;
+  dropped `user-scalable=no`/`maximum-scale` so zoom is available again (inputs stay 16px);
+  per-keystroke tab refresh is now incremental instead of rebuilding the whole tab bar and
+  re-scanning icons; and added CodeMirror addons — comment (Ctrl/Cmd+/), closetag +
+  matchtags (with xml-fold) and continuelist. All verified via the CDP harness with zero
+  exceptions, plus a full regression pass on a clean profile.*

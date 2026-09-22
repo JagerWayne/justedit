@@ -2,12 +2,12 @@
 <html lang="en" data-theme="dracula">
 <head>
   <meta charset="UTF-8">
-  <!-- Reliable hardening without breaking the sandboxed live preview: locks down
-       object/base/form injection and blocks eval, while still allowing the inline
-       app script and CDN assets the editor depends on. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self'; frame-src 'self' data: blob: https:; object-src 'none'; base-uri 'none'; form-action 'none'">
-  <!-- Optimized viewport for mobile devices, preventing auto-zoom on inputs -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <!-- Hardened to the exact CDN hosts the app loads instead of a blanket https:.
+       img-src / frame-src stay permissive on https: so the sandboxed HTML and
+       Markdown previews can still render remote images and embeds. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; frame-src 'self' data: blob: https:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <!-- Zoom stays available for accessibility; inputs are already 16px so iOS won't auto-zoom. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>JustEdit Pro</title>
   
   <!-- Fonts -->
@@ -83,6 +83,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldgutter.min.js" integrity="sha384-Ac/3zEI5dlnDOqcbGRHTFqD6PaE02DrexbwN3Gkp05zzHS/Lml381fYFxc/Ltg8T" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/brace-fold.min.js" integrity="sha384-zzWC7M208QkDtoZg1qnzYyhUoRgjEG1H/k7m0G5OZM5BT/NYyLFGO9EAfSEhMHPt" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/selection/active-line.min.js" integrity="sha384-hcxaXyAtJ30s2NeDu1OHWsQRiHiWuYLTbI596+YFb+f2pFhzO0mDuahZziRPPDxg" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/comment/comment.min.js" integrity="sha384-B6Af6BES5glvxvAPc9Vrl9t1lHx1k3iL8AcT1XmsmlEVZudSW8E+8CA1TxVbdQbj" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closetag.min.js" integrity="sha384-WIyvbwMte2q6VXgBkN7prVo9ZSmBm47nI2ftVjoJLPY4yOu9gmI6lqaNXjBwHU5k" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/xml-fold.min.js" integrity="sha384-FDPLsaFqXfkxjWzH/BM7rcWncOP/e8SstCBVPvUBOQ3r41B5azhoRG70ck/8pku7" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/matchtags.min.js" integrity="sha384-JaELZ9D5nh3ebmEsnptOuwnMXCif1NUWLa8E5n3Q6ABx5D2BcowJf2RemydwYG6X" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/continuelist.min.js" integrity="sha384-ew54Ry5+wy74QeO2dHPrrhU+KDKvd1D6yOI2/K31tuA7IuzhvUpPqDNbqSR1UEWM" crossorigin="anonymous"></script>
 
   <style>
     /* Global Variables & Theming */
@@ -211,6 +216,7 @@
     .tab .tab-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
     .tab .tab-close { opacity: 0; border: none; background: none; color: inherit; padding: 4px; border-radius: 4px; }
     .tab:hover .tab-close, .tab.active .tab-close { opacity: 1; }
+    .tab-dirty-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-main); flex-shrink: 0; }
     .tab-add {
       display: flex; align-items: center; justify-content: center; height: 100%; padding: 0 14px;
       background: none; border: none; border-right: 1px solid var(--border-dark);
@@ -274,35 +280,37 @@
 
     #hex-scroll-x { flex: 1; overflow-x: auto; -webkit-overflow-scrolling: touch; min-height: 0; }
     #hex-view-inner {
-      min-width: 580px; display: flex; flex-direction: column; height: 100%; font-family: var(--font-mono); font-size: var(--app-font-size);
+      min-width: 41.5em; display: flex; flex-direction: column; height: 100%; font-family: var(--font-mono); font-size: var(--app-font-size);
     }
     .hex-header {
       display: flex; padding: 12px 16px; background-color: var(--bg-panel); border-bottom: 1px solid var(--border-light);
       font-weight: 600; font-size: 13px; color: var(--text-muted);
     }
-    .h-col-offset { width: 100px; flex-shrink: 0; }
-    .h-col-hex { width: 440px; flex-shrink: 0; }
-    
+    .h-col-offset { width: 7.2em; flex-shrink: 0; }
+    .h-col-hex { width: 31.6em; flex-shrink: 0; }
+
     #hex-scroll-container { flex: 1; overflow-y: auto; position: relative; }
     #hex-spacer { width: 1px; }
     #hex-content { position: absolute; top: 0; left: 0; right: 0; padding: 0 16px; }
-    
-    /* Hex Layout Styles */
-    .hex-row-group { display: flex; flex-direction: column; height: 56px; border-bottom: 1px solid var(--border-dark); justify-content: center; }
+
+    /* Hex Layout Styles — horizontal sizes are em-based so they track the editor
+       font size; the row height is driven by --hex-row-height so virtualization
+       offsets stay in sync when the font size changes. */
+    .hex-row-group { display: flex; flex-direction: column; height: var(--hex-row-height, 56px); border-bottom: 1px solid var(--border-dark); justify-content: center; }
     .hex-row-group:hover { background-color: var(--bg-hover); }
-    .hex-sub-row { display: flex; align-items: center; height: 26px; }
-    
-    .hex-sub-row .offset { width: 100px; color: var(--hex-offset); opacity: 0.8; font-size: 13px; flex-shrink: 0; }
+    .hex-sub-row { display: flex; align-items: center; height: var(--hex-sub-row, 26px); }
+
+    .hex-sub-row .offset { width: 7.2em; color: var(--hex-offset); opacity: 0.8; font-size: 13px; flex-shrink: 0; }
     .hex-sub-row .offset.empty { opacity: 0; }
-    
-    .hex-sub-row .bytes { width: 440px; display: flex; gap: 6px; flex-shrink: 0; }
+
+    .hex-sub-row .bytes { width: 31.6em; display: flex; gap: 0.45em; flex-shrink: 0; }
     .hex-sub-row .bytes.hex-data { color: var(--hex-byte); }
-    .hex-sub-row .bytes.text-data { color: var(--hex-ascii); font-size: 14px; }
-    
-    .hex-sub-row .bytes .cell { width: 22px; text-align: center; border-radius: 4px; cursor: pointer; line-height: 22px; }
+    .hex-sub-row .bytes.text-data { color: var(--hex-ascii); font-size: 1em; }
+
+    .hex-sub-row .bytes .cell { width: 1.65em; text-align: center; border-radius: 4px; cursor: pointer; line-height: var(--hex-sub-row, 26px); }
     .hex-sub-row .bytes .cell.sel { background: var(--accent); color: var(--bg-root); font-weight: bold; }
     .hex-sub-row .bytes .cell.match { box-shadow: inset 0 0 0 1px var(--accent); border-radius: 4px; }
-    .hex-sub-row .bytes .gap { width: 8px; }
+    .hex-sub-row .bytes .gap { width: 0.6em; }
 
     /* Hidden Mobile Hex Input */
     #hex-hidden-input {
@@ -1135,9 +1143,20 @@
         return gutters;
       }
 
+      // Hex row geometry scales with the editor font size so larger fonts never
+      // clip the byte/ASCII rows, and virtualization offsets stay correct.
+      function applyHexMetrics() {
+        const fontPx = Number(state.prefs.fontSize) || 14;
+        const rowHeight = Math.round(fontPx * 4);
+        hexState.rowHeight = rowHeight;
+        document.documentElement.style.setProperty('--hex-row-height', rowHeight + 'px');
+        document.documentElement.style.setProperty('--hex-sub-row', Math.round(rowHeight / 2) + 'px');
+      }
+
       function applyPrefs() {
         const p = state.prefs;
         document.documentElement.style.setProperty('--app-font-size', p.fontSize + 'px');
+        applyHexMetrics();
         if (!cmEditor) return;
         cmEditor.setOption('lineWrapping', !!p.lineWrapping);
         cmEditor.setOption('tabSize', Number(p.tabSize));
@@ -1148,6 +1167,8 @@
         cmEditor.setOption('foldGutter', !!p.foldGutter);
         cmEditor.setOption('gutters', buildGutters());
         cmEditor.refresh();
+        const tab = getActiveTab();
+        if (tab && tab.isHex) Hex.relayout();
       }
 
       function syncPrefControls() {
@@ -1236,6 +1257,8 @@
           mode: 'text/plain',
           autoCloseBrackets: !!p.autoCloseBrackets,
           matchBrackets: true,
+          autoCloseTags: true,
+          matchTags: { bothTags: true },
           foldGutter: !!p.foldGutter,
           gutters: buildGutters(),
           lineWrapping: !!p.lineWrapping,
@@ -1252,7 +1275,7 @@
             tab.isDirty = true;
             tab.content = cm.getValue();
             tab.bytesDirty = true;
-            UI.renderTabs();
+            UI.updateActiveTabVisual();
             if(tab.isPreviewOpen) updateMarkdownPreview();
           }
           UI.updateStatusBar();
@@ -1310,16 +1333,23 @@
             if (e.target.closest('[data-action="toggle-eol"]')) toggleEol(); else cycleEncoding();
             return;
           }
-          if (e.ctrlKey || e.metaKey) {
-            switch (e.key.toLowerCase()) {
-              case 's': e.preventDefault(); saveFile(); break;
-              case 'o': e.preventDefault(); openFile(); break;
-              case 'n': e.preventDefault(); createTab(); break;
-              case 'w': e.preventDefault(); closeTab(state.activeId); break;
-              case 'f': e.preventDefault(); EditorActions.showFindReplace(false); break;
-              case 'h': e.preventDefault(); EditorActions.showFindReplace(true); break;
-              case 'p': if (e.shiftKey) { e.preventDefault(); Palette.open(); } break;
-            }
+          if (!(e.ctrlKey || e.metaKey)) return;
+          // Save stays global so work can be written from any surface (palette,
+          // hex search, dialogs). The rest need editor focus so they don't hijack
+          // typing — note CodeMirror types into a hidden <textarea>, which is why
+          // we check for its container before treating a textarea as "typing".
+          if (e.key.toLowerCase() === 's') { e.preventDefault(); saveFile(); return; }
+          const t = e.target;
+          const inEditor = !!(t && t.closest && t.closest('.CodeMirror'));
+          const typing = !inEditor && !!(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable));
+          if (typing) return;
+          switch (e.key.toLowerCase()) {
+            case 'o': e.preventDefault(); openFile(); break;
+            case 'n': e.preventDefault(); createTab(); break;
+            case 'w': e.preventDefault(); closeTab(state.activeId); break;
+            case 'f': e.preventDefault(); EditorActions.showFindReplace(false); break;
+            case 'h': e.preventDefault(); EditorActions.showFindReplace(true); break;
+            case 'p': if (e.shiftKey) { e.preventDefault(); Palette.open(); } break;
           }
         });
         
@@ -2175,6 +2205,11 @@
           root.setAttribute('data-theme', base);
           if (cmEditor) cmEditor.setOption('theme', base === 'github-light' ? 'default' : base);
         },
+        // Discard an un-saved live preview by restoring the currently applied theme.
+        revert() {
+          applyThemeVars(state.theme);
+          rebuildThemeSelect();
+        },
         collect() {
           const vars = {};
           document.querySelectorAll('[data-theme-var]').forEach(inp => { vars[inp.dataset.themeVar] = inp.value; });
@@ -2385,13 +2420,32 @@
       };
 
       // --- Saving back to the original file handle ---
-      function getConvertibleImageMime(ext) {        return { 'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'webp': 'image/webp', 'bmp': 'image/bmp' }[ext] || null;
+      function getConvertibleImageMime(ext) {
+        return { 'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'webp': 'image/webp', 'bmp': 'image/bmp' }[ext] || null;
+      }
+
+      function imageHasEdits(tab) {
+        if (!tab || !tab.isImage || !tab.imgEdits) return false;
+        const d = defaultImgEdits();
+        return Object.keys(d).some(k => tab.imgEdits[k] !== d[k]);
       }
 
       async function bakeImageEdits(tab, newExt) {
         if (!tab.isImage) return true;
         const conv = getConvertibleImageMime(newExt);
-        if (!conv) return true;
+        if (!conv) {
+          // The target format can't carry the non-destructive adjustments. Confirm
+          // before silently writing the unedited original.
+          if (imageHasEdits(tab)) {
+            const label = (newExt || '').toUpperCase() || 'this format';
+            const ok = confirm(
+              'Your image adjustments (crop/resize/rotate/color) cannot be stored in ' + label + '.\n\n' +
+              'Save the original image without the adjustments?'
+            );
+            if (!ok) return false;
+          }
+          return true;
+        }
         try {
           const quality = (tab.imgEdits || defaultImgEdits()).quality;
           const outBlob = await renderEditedImage(tab, conv, quality);
@@ -2490,6 +2544,8 @@
             if (!(await bakeImageEdits(tab, newExt))) return;
             tab.name = fullName; // ImageViewer picks its blob MIME from the tab name
             if (tab.isHex) Hex.load(tab.bytes); else ImageViewer.load(tab);
+          } else if (!(await bakeImageEdits(tab, newExt))) {
+            return; // adjustments can't be baked here and the user declined to save the original
           }
         } else {
           syncTabBytes(tab);
@@ -2835,6 +2891,13 @@
           const totalRows = Math.ceil(bytes.length / 16) || 1;
           document.getElementById('hex-spacer').style.height = (totalRows * hexState.rowHeight) + 'px';
           container.scrollTop = 0;
+          this.renderViewport(true);
+        },
+        // Recompute the scroll spacer and repaint after the row height changes.
+        relayout() {
+          const totalRows = Math.ceil(hexState.data.length / 16) || 1;
+          document.getElementById('hex-spacer').style.height = (totalRows * hexState.rowHeight) + 'px';
+          hexState.lastLen = -1;
           this.renderViewport(true);
         },
         renderViewport(force = false) {
@@ -3293,7 +3356,7 @@
             <div class="tab ${t.id === state.activeId ? 'active' : ''}" data-action="switch-tab" data-tab-id="${t.id}">
               <i data-lucide="${t.isImage ? 'image' : (t.isHex ? 'binary' : 'file-code')}" size="14"></i>
               <span class="tab-title">${escapeHtml(t.name)}</span>
-              ${t.isDirty ? '<div style="width:6px;height:6px;border-radius:50%;background:var(--text-main);"></div>' : ''}
+              ${t.isDirty ? '<div class="tab-dirty-dot"></div>' : ''}
               <button class="tab-close" data-action="close-tab" data-tab-id="${t.id}" aria-label="Close ${escapeHtml(t.name)}"><i data-lucide="x" size="14"></i></button>
             </div>
           `).join('') + `
@@ -3303,6 +3366,25 @@
           
           const active = bar.querySelector('.active');
           if(active) active.scrollIntoView({behavior: "smooth", inline: "center"});
+          this.updateBreadcrumb();
+        },
+        // Cheap per-keystroke refresh: updates only the active tab's title and dirty
+        // dot instead of rebuilding the whole tab bar (and re-running the icon scan).
+        updateActiveTabVisual() {
+          const tab = getActiveTab();
+          if (!tab) return;
+          const el = document.querySelector(`#tabs-bar .tab[data-tab-id="${tab.id}"]`);
+          if (!el) { this.renderTabs(); return; }
+          const title = el.querySelector('.tab-title');
+          if (title && title.textContent !== tab.name) title.textContent = tab.name;
+          const dot = el.querySelector('.tab-dirty-dot');
+          if (tab.isDirty && !dot) {
+            const d = document.createElement('div');
+            d.className = 'tab-dirty-dot';
+            if (title) title.after(d); else el.prepend(d);
+          } else if (!tab.isDirty && dot) {
+            dot.remove();
+          }
           this.updateBreadcrumb();
         },
         updateStatusBar() {
@@ -3373,7 +3455,10 @@
           menu.classList.toggle('active');
         },
         closeModals() {
+          const themeOpen = document.getElementById('theme-modal')?.classList.contains('active');
           document.querySelectorAll('.overlay').forEach(el => el.classList.remove('active'));
+          // Closing the theme editor discards an un-saved live preview.
+          if (themeOpen) ThemeEditor.revert();
           EditorActions.clearMatches();
           if (document.fullscreenElement) {
             document.exitFullscreen().catch(()=>{});
