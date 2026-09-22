@@ -8,6 +8,9 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; frame-src 'self' data: blob: https:; object-src 'none'; base-uri 'none'; form-action 'none'">
   <!-- Zoom stays available for accessibility; inputs are already 16px so iOS won't auto-zoom. -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="JustEdit Pro — a fast, single-file code editor with hex, image editing, Markdown/HTML preview, and folder browsing. Runs entirely in your browser.">
+  <meta name="theme-color" content="#1e1e2e">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%231e1e2e'/%3E%3Cpath%20d='M9%207h9l6%206v10a2%202%200%200%201-2%202H9a2%202%200%200%201-2-2V9a2%202%200%200%201%202-2z'%20fill='%2389b4fa'/%3E%3Cpath%20d='M18%207v6h6'%20fill='none'%20stroke='%231e1e2e'%20stroke-width='1.6'/%3E%3Cpath%20d='M11%2018h10M11%2021h7'%20stroke='%231e1e2e'%20stroke-width='1.6'%20stroke-linecap='round'/%3E%3C/svg%3E">
   <title>JustEdit Pro</title>
   
   <!-- Fonts -->
@@ -445,6 +448,19 @@
     .palette-item .palette-hint { margin-left: auto; font-size: 12px; opacity: 0.7; white-space: nowrap; }
     .palette-empty { padding: 12px; color: var(--text-muted); font-size: 13px; }
 
+    /* About menu block + menu keyboard focus */
+    .about-block { align-items: flex-start; }
+    .menu-item:focus-visible { background: var(--accent); color: var(--bg-root); outline: none; }
+    .menu-item a, .menu-item select:focus-visible { outline: none; }
+
+    /* Keyboard shortcuts list */
+    #shortcuts-list { display: flex; flex-direction: column; }
+    .sc-row { display: flex; justify-content: space-between; gap: 16px; padding: 7px 2px; border-bottom: 1px solid var(--border-light); font-size: 13px; }
+    .sc-row:last-child { border-bottom: none; }
+    .sc-row .sc-key { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); background: var(--bg-root); border: 1px solid var(--border-dark); border-radius: 5px; padding: 1px 7px; white-space: nowrap; }
+    .sc-section { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin: 12px 2px 2px; }
+    .sc-section:first-child { margin-top: 0; }
+
     /* Theme Editor */
     .field-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; display: block; }
     .theme-color-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
@@ -487,8 +503,12 @@
       <div id="sidebar-header">
         <i data-lucide="folder-tree" size="16" style="flex-shrink:0;"></i>
         <span id="sidebar-title">No folder</span>
+        <button class="icon-btn" data-action="refresh-tree" title="Refresh" aria-label="Refresh folder"><i data-lucide="refresh-cw" size="16"></i></button>
         <button class="icon-btn" data-action="open-folder" title="Open Folder" aria-label="Open Folder"><i data-lucide="folder-open" size="16"></i></button>
         <button class="icon-btn" data-action="toggle-sidebar" title="Hide Sidebar" aria-label="Hide Sidebar"><i data-lucide="x" size="16"></i></button>
+      </div>
+      <div id="tree-filter-wrap" style="display:none; padding: 6px 10px 0;">
+        <input type="text" id="tree-filter" placeholder="Filter files…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="width:100%; padding:6px 10px; background:var(--bg-root); border:1px solid var(--border-dark); border-radius:6px; color:var(--text-main); font-size:12px; outline:none;">
       </div>
       <div id="file-tree" role="tree" aria-label="Files"></div>
       <div id="sidebar-reconnect" style="display:none;">
@@ -524,11 +544,17 @@
           <div class="menu-section-title">File</div>
           <div class="menu-item" data-action="new-file"><i data-lucide="file-plus" size="16"></i> New File</div>
           <div class="menu-item" data-action="open-file"><i data-lucide="folder-open" size="16"></i> Open File...</div>
+          <div class="menu-item" data-action="open-file-encoding"><i data-lucide="file-code" size="16"></i> Open File with Encoding...</div>
           <div class="menu-item" data-action="open-folder"><i data-lucide="folder-tree" size="16"></i> Open Folder...</div>
           <div class="menu-item" data-action="open-data-url"><i data-lucide="link" size="16"></i> Open Data URL...</div>
           <div class="menu-item" data-action="save-file"><i data-lucide="save" size="16"></i> Save</div>
           <div class="menu-item" data-action="save-file-as"><i data-lucide="save" size="16"></i> Save File As...</div>
+          <div class="menu-item" data-action="save-all"><i data-lucide="save" size="16"></i> Save All</div>
           <div id="recent-files"></div>
+          <div class="menu-item" data-action="duplicate-tab"><i data-lucide="copy" size="16"></i> Duplicate Tab</div>
+          <div class="menu-item" data-action="copy-name"><i data-lucide="clipboard" size="16"></i> Copy File Name</div>
+          <div class="menu-item" data-action="reopen-tab"><i data-lucide="undo" size="16"></i> Reopen Closed Tab</div>
+          <div class="menu-item" data-action="close-all-tabs"><i data-lucide="x" size="16"></i> Close All Tabs</div>
           
           <div class="menu-divider"></div>
           
@@ -555,6 +581,10 @@
           <div class="menu-item" data-action="toggle-sidebar"><i data-lucide="panel-left" size="16"></i> Toggle Sidebar</div>
           <div class="menu-item" data-action="open-palette"><i data-lucide="command" size="16"></i> Command Palette...</div>
           <div class="menu-item" data-action="share-data-url"><i data-lucide="share-2" size="16"></i> Copy Data URL</div>
+          <div class="menu-divider"></div>
+          <div class="menu-item" data-action="goto-line"><i data-lucide="list-ordered" size="16"></i> Go to Line...</div>
+          <div class="menu-item" data-action="shortcuts"><i data-lucide="command" size="16"></i> Keyboard Shortcuts</div>
+          <div class="menu-item" data-action="toggle-bom"><i data-lucide="binary" size="16"></i> Toggle BOM</div>
           
           <div class="menu-divider"></div>
           
@@ -640,7 +670,22 @@
               <option value="false">Highlight matches: Off</option>
             </select>
           </div>
-          
+
+          <div class="menu-divider"></div>
+
+          <div class="menu-section-title">About</div>
+          <div class="menu-item about-block" style="cursor: default;">
+            <i data-lucide="info" size="16" style="flex-shrink: 0;"></i>
+            <div style="line-height: 1.45; min-width: 0;">
+              <div style="font-weight: 600;">JustEdit Pro <span id="about-version" style="color: var(--text-muted); font-weight: 500;">v1.1.0</span></div>
+              <div style="font-size: 12px; color: var(--text-muted);">by Wayne Scicluna</div>
+            </div>
+          </div>
+          <a class="menu-item" data-action="open-github" href="https://github.com/JagerWayne/justedit" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+            <i data-lucide="link" size="16" style="flex-shrink: 0;"></i>
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">github.com/JagerWayne/justedit</span>
+          </a>
+
         </div>
       </div>
 
@@ -661,7 +706,7 @@
 
           <div id="hex-toolbar">
             <input type="text" id="hex-search-input" placeholder="Find hex (48 65) or text…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-            <span id="hex-search-count"></span>
+            <span id="hex-search-count" role="status" aria-live="polite"></span>
             <button class="icon-btn" data-action="hex-search-prev" title="Previous match (Shift+Enter)" aria-label="Previous match"><i data-lucide="arrow-up" size="16"></i></button>
             <button class="icon-btn" data-action="hex-search-next" title="Next match (Enter)" aria-label="Next match"><i data-lucide="arrow-down" size="16"></i></button>
             <span class="adj-sep"></span>
@@ -694,6 +739,14 @@
             <span class="adj-sep"></span>
             <button class="icon-btn" data-action="crop-open" title="Crop" aria-label="Crop"><i data-lucide="crop" size="18"></i></button>
             <button class="icon-btn" data-action="resize-open" title="Resize" aria-label="Resize"><i data-lucide="scaling" size="18"></i></button>
+            <span class="adj-sep"></span>
+            <select id="img-export-fmt" class="input-field" style="width:auto; padding:4px 8px; font-size:12px;" aria-label="Export format">
+              <option value="png">PNG</option>
+              <option value="jpg">JPEG</option>
+              <option value="webp">WebP</option>
+              <option value="bmp">BMP</option>
+            </select>
+            <button class="icon-btn" data-action="img-download" title="Download edited image" aria-label="Download edited image"><i data-lucide="download" size="18"></i></button>
             <span id="img-meta" style="margin-left:auto; font-size:12px; color:var(--text-muted); white-space:nowrap;"></span>
           </div>
           <div id="image-adjust-bar">
@@ -727,7 +780,7 @@
       <div class="sb-item"><i data-lucide="check-circle" size="14"></i> <span id="sb-status">Ready</span></div>
     </div>
     <div class="sb-section" id="sb-stats" style="display:flex;">
-      <div class="sb-item" id="sb-cursor">Ln 1, Col 1</div>
+      <div class="sb-item" id="sb-cursor" data-action="goto-line" role="button" tabindex="0" title="Go to line — click" style="cursor:pointer;">Ln 1, Col 1</div>
       <div class="sb-item" id="sb-size">0 Bytes</div>
       <div class="sb-item" id="sb-lang">Plain Text</div>
       <div class="sb-item" id="sb-eol" data-action="toggle-eol" role="button" tabindex="0" title="Line ending — click to switch LF / CRLF" style="cursor:pointer;">LF</div>
@@ -935,6 +988,69 @@
     </div>
   </div>
 
+  <!-- Go To Line -->
+  <div class="overlay" id="goto-modal">
+    <div class="modal" style="width: 360px; max-width: 100%;">
+      <div class="modal-header">
+        <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="list-ordered" size="16"></i> Go to Line</span>
+        <button class="icon-btn" data-action="close-modals" aria-label="Close"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <label class="field-label" for="goto-input">Line number (1 – <span id="goto-max">1</span>)</label>
+          <input type="number" id="goto-input" class="input-field" min="1" step="1">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-action="close-modals">Cancel</button>
+        <button class="btn btn-primary" data-action="goto-apply">Go</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts -->
+  <div class="overlay" id="shortcuts-modal">
+    <div class="modal" style="width: 560px; max-width: 100%;">
+      <div class="modal-header">
+        <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="command" size="16"></i> Keyboard Shortcuts</span>
+        <button class="icon-btn" data-action="close-modals" aria-label="Close"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body" style="gap: 0;">
+        <div id="shortcuts-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" data-action="close-modals">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Open File with Encoding -->
+  <div class="overlay" id="encoding-modal">
+    <div class="modal" style="width: 420px; max-width: 100%;">
+      <div class="modal-header">
+        <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="file-code" size="16"></i> Open File with Encoding</span>
+        <button class="icon-btn" data-action="close-modals" aria-label="Close"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body" style="gap: 12px;">
+        <div>
+          <label class="field-label" for="open-encoding">Text encoding</label>
+          <select id="open-encoding" class="input-field">
+            <option value="auto">Auto-detect</option>
+            <option value="UTF-8">UTF-8</option>
+            <option value="UTF-8-BOM">UTF-8 with BOM</option>
+            <option value="UTF-16LE">UTF-16 LE</option>
+            <option value="UTF-16BE">UTF-16 BE</option>
+          </select>
+        </div>
+        <p style="font-size:12px; color:var(--text-muted); margin:0;">Automatic detection is used when set to Auto-detect.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-action="close-modals">Cancel</button>
+        <button class="btn btn-primary" data-action="open-encoding-apply">Choose File…</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Drag & Drop Overlay -->
   <div id="drop-zone">
     <i data-lucide="file-down" size="72" style="margin-bottom: 20px;"></i>
@@ -950,6 +1066,12 @@
      * Optimized for Desktop & Mobile Touch
      */
     const App = (function() {
+      // --- App identity ---
+      const APP_NAME = 'JustEdit Pro';
+      const APP_VERSION = '1.1.0';
+      const APP_AUTHOR = 'Wayne Scicluna';
+      const APP_URL = 'https://github.com/JagerWayne/justedit';
+
       // --- State ---
       const DEFAULT_PREFS = {
         fontSize: 14,
@@ -1241,6 +1363,8 @@
       // --- Initialization ---
       async function init() {
         populateSelects();
+        const av = document.getElementById('about-version');
+        if (av) av.textContent = 'v' + APP_VERSION;
         lucide.createIcons();
         initCodeMirror();
         initEventListeners();
@@ -1264,7 +1388,12 @@
           lineWrapping: !!p.lineWrapping,
           styleActiveLine: !!p.styleActiveLine,
           indentUnit: Number(p.tabSize),
-          tabSize: Number(p.tabSize)
+          tabSize: Number(p.tabSize),
+          extraKeys: {
+            'Ctrl-D': () => duplicateLines(), 'Cmd-D': () => duplicateLines(),
+            'Alt-Up': () => moveLines(-1), 'Alt-Down': () => moveLines(1),
+            'Ctrl-G': () => openGoto(), 'Cmd-G': () => openGoto()
+          }
         });
         applyPrefs();
 
@@ -1273,10 +1402,13 @@
           const tab = getActiveTab();
           if (tab && !tab.isHex && !tab.isImage) {
             tab.isDirty = true;
-            tab.content = cm.getValue();
+            // Read the buffer lazily instead of pulling the whole document through
+            // getValue() on every keystroke — content is refreshed on switch/save.
+            tab.contentStale = true;
             tab.bytesDirty = true;
             UI.updateActiveTabVisual();
             if(tab.isPreviewOpen) updateMarkdownPreview();
+            scheduleWordCount();
           }
           UI.updateStatusBar();
           Storage.debouncedSave();
@@ -1289,6 +1421,33 @@
           UI.updateStatusBar();
           EditorActions.updateMatchCount();
         });
+      }
+
+      // Pull the live editor buffer into the active tab's stored content on demand.
+      function refreshActiveTextContent() {
+        const tab = getActiveTab();
+        if (tab && !tab.isHex && !tab.isImage && tab.contentStale) {
+          tab.content = cmEditor.getValue();
+          tab.contentStale = false;
+        }
+      }
+
+      let wordTimer = null;
+      function scheduleWordCount() {
+        clearTimeout(wordTimer);
+        wordTimer = setTimeout(() => {
+          const tab = getActiveTab();
+          if (tab && !tab.isHex && !tab.isImage) {
+            tab.wordCount = countWords(cmEditor.getValue());
+            UI.updateStatusBar();
+          }
+        }, 400);
+      }
+
+      function getTabText(tab) {
+        if (!tab) return '';
+        if (tab === getActiveTab() && !tab.isHex && !tab.isImage && cmEditor) return cmEditor.getValue();
+        return tab.content || '';
       }
       
       function syncTabBytes(tab) {
@@ -1328,9 +1487,24 @@
             if (document.querySelector('.overlay.active')) UI.closeModals();
             return;
           }
-          if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-action="toggle-eol"], [data-action="cycle-encoding"]')) {
+          if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-action="toggle-eol"], [data-action="cycle-encoding"], [data-action="goto-line"]')) {
+            const hit = e.target.closest('[data-action="toggle-eol"], [data-action="cycle-encoding"], [data-action="goto-line"]');
+            if (hit.dataset.action === 'cycle-encoding' && !cmEditor) return;
             e.preventDefault();
-            if (e.target.closest('[data-action="toggle-eol"]')) toggleEol(); else cycleEncoding();
+            if (hit.dataset.action === 'toggle-eol') toggleEol();
+            else if (hit.dataset.action === 'cycle-encoding') cycleEncoding();
+            else openGoto();
+            return;
+          }
+          // "?" opens the keyboard-shortcuts sheet when not typing.
+          if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
+            const t = e.target;
+            const typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+            if (!typing) { e.preventDefault(); openShortcuts(); return; }
+          }
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Tab') {
+            e.preventDefault();
+            cycleTabs(e.shiftKey ? -1 : 1);
             return;
           }
           if (!(e.ctrlKey || e.metaKey)) return;
@@ -1338,7 +1512,8 @@
           // hex search, dialogs). The rest need editor focus so they don't hijack
           // typing — note CodeMirror types into a hidden <textarea>, which is why
           // we check for its container before treating a textarea as "typing".
-          if (e.key.toLowerCase() === 's') { e.preventDefault(); saveFile(); return; }
+          if (e.key.toLowerCase() === 's') { e.preventDefault(); saveFile(e.shiftKey); return; }
+          if (e.key.toLowerCase() === 't' && e.shiftKey) { e.preventDefault(); reopenClosedTab(); return; }
           const t = e.target;
           const inEditor = !!(t && t.closest && t.closest('.CodeMirror'));
           const typing = !inEditor && !!(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable));
@@ -1349,7 +1524,7 @@
             case 'w': e.preventDefault(); closeTab(state.activeId); break;
             case 'f': e.preventDefault(); EditorActions.showFindReplace(false); break;
             case 'h': e.preventDefault(); EditorActions.showFindReplace(true); break;
-            case 'p': if (e.shiftKey) { e.preventDefault(); Palette.open(); } break;
+            case 'p': e.preventDefault(); Palette.open(); break;
           }
         });
         
@@ -1406,6 +1581,17 @@
         window.addEventListener('drop', async e => {
           e.preventDefault();
           dropZone.classList.remove('active');
+          // Prefer a dropped directory handle (Chromium) so dropping a folder opens the tree.
+          if (FS_SUPPORTED && e.dataTransfer.items && e.dataTransfer.items.length) {
+            for (const item of e.dataTransfer.items) {
+              if (item.kind === 'file' && typeof item.getAsFileSystemHandle === 'function') {
+                try {
+                  const h = await item.getAsFileSystemHandle();
+                  if (h && h.kind === 'directory') { await Sidebar.setRoot(h); return; }
+                } catch (_) { /* fall through to file handling */ }
+              }
+            }
+          }
           if(e.dataTransfer.files.length) {
             for(let f of e.dataTransfer.files) await handleFileDrop(f);
           }
@@ -1483,6 +1669,43 @@
           }).observe(hexScroll);
         }
 
+        // --- Tabs: drag to reorder + middle-click to close ---
+        const tabsBar = document.getElementById('tabs-bar');
+        let dragTabId = null;
+        tabsBar.addEventListener('dragstart', e => {
+          const tab = e.target.closest('.tab');
+          if (!tab) return;
+          dragTabId = tab.dataset.tabId;
+          e.dataTransfer.effectAllowed = 'move';
+          try { e.dataTransfer.setData('text/plain', dragTabId); } catch (_) {}
+        });
+        tabsBar.addEventListener('dragover', e => { if (dragTabId) e.preventDefault(); });
+        tabsBar.addEventListener('drop', e => {
+          e.preventDefault();
+          const target = e.target.closest('.tab');
+          if (!target || !dragTabId) return;
+          reorderTabs(dragTabId, target.dataset.tabId);
+          dragTabId = null;
+        });
+        tabsBar.addEventListener('dragend', () => { dragTabId = null; });
+        tabsBar.addEventListener('auxclick', e => {
+          if (e.button !== 1) return; // middle click
+          const tab = e.target.closest('.tab');
+          if (tab) { e.preventDefault(); closeTab(tab.dataset.tabId); }
+        });
+
+        // --- Sidebar filter ---
+        const treeFilter = document.getElementById('tree-filter');
+        if (treeFilter) treeFilter.addEventListener('input', () => Sidebar.filter(treeFilter.value));
+
+        // --- Go to line: Enter submits ---
+        const gotoInput = document.getElementById('goto-input');
+        if (gotoInput) gotoInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); executeGoto(); } });
+
+        // --- Accessibility wiring ---
+        initMenuA11y();
+        initModalA11y();
+
         // Delegated event handling — replaces all inline onclick/oninput/onchange
         // attributes so the document can run under a Content-Security-Policy.
         document.addEventListener('click', e => {
@@ -1500,16 +1723,90 @@
         });
       }
 
+      // Keyboard support for the dropdown menu (roles + arrow navigation).
+      function initMenuA11y() {
+        const menu = document.getElementById('edit-menu');
+        if (!menu || menu.dataset.a11y) return;
+        menu.dataset.a11y = '1';
+        menu.setAttribute('role', 'menu');
+        const items = () => [...menu.querySelectorAll('.menu-item')].filter(el => el.querySelector('select') === null);
+        menu.querySelectorAll('.menu-item').forEach(mi => { mi.setAttribute('role', 'menuitem'); mi.tabIndex = -1; });
+        menu.addEventListener('keydown', e => {
+          const list = items();
+          if (!list.length) return;
+          const i = list.indexOf(document.activeElement);
+          if (e.key === 'ArrowDown') { e.preventDefault(); list[(i + 1 + list.length) % list.length].focus(); }
+          else if (e.key === 'ArrowUp') { e.preventDefault(); list[(i - 1 + list.length) % list.length].focus(); }
+          else if (e.key === 'Home') { e.preventDefault(); list[0].focus(); }
+          else if (e.key === 'End') { e.preventDefault(); list[list.length - 1].focus(); }
+          else if (e.key === 'Enter' && i >= 0) { e.preventDefault(); list[i].click(); }
+        });
+      }
+
+      // Dialog semantics + focus trap + focus restore for every overlay.
+      function initModalA11y() {
+        const overlays = [...document.querySelectorAll('.overlay')];
+        overlays.forEach(ov => {
+          ov.setAttribute('role', 'dialog');
+          ov.setAttribute('aria-modal', 'true');
+          const header = ov.querySelector('.modal-header');
+          if (header && !ov.getAttribute('aria-label')) ov.setAttribute('aria-label', header.textContent.trim().slice(0, 60));
+          ov._wasActive = ov.classList.contains('active');
+        });
+        let lastFocus = null;
+        const observer = new MutationObserver(muts => {
+          for (const m of muts) {
+            const ov = m.target;
+            const active = ov.classList.contains('active');
+            if (active && !ov._wasActive) {
+              lastFocus = document.activeElement;
+              const focusable = ov.querySelector('input, select, textarea, button, a[href], [tabindex]:not([tabindex="-1"])');
+              if (focusable) setTimeout(() => { try { focusable.focus(); } catch (_) {} }, 40);
+            } else if (!active && ov._wasActive && lastFocus && lastFocus.focus) {
+              try { lastFocus.focus(); } catch (_) {}
+              lastFocus = null;
+            }
+            ov._wasActive = active;
+          }
+        });
+        overlays.forEach(ov => observer.observe(ov, { attributes: true, attributeFilter: ['class'] }));
+        document.addEventListener('keydown', e => {
+          if (e.key !== 'Tab') return;
+          const ov = document.querySelector('.overlay.active');
+          if (!ov) return;
+          const focusables = [...ov.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+            .filter(el => el.getClientRects().length > 0);
+          if (!focusables.length) return;
+          const first = focusables[0], last = focusables[focusables.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        });
+      }
+
       function dispatchAction(el, e) {
         switch (el.dataset.action) {
           case 'toggle-edit-menu': UI.toggleEditMenu(e); break;
           case 'close-modals': UI.closeModals(); break;
           case 'new-file': createTab(); EditorActions.closeMenu(); break;
           case 'open-file': openFile(); EditorActions.closeMenu(); break;
+          case 'open-file-encoding': openWithEncoding(); EditorActions.closeMenu(); break;
           case 'open-folder': openFolder(); break;
           case 'open-data-url': openDataUrl(); EditorActions.closeMenu(); break;
           case 'save-file': saveFile(); EditorActions.closeMenu(); break;
           case 'save-file-as': saveFile(true); EditorActions.closeMenu(); break;
+          case 'save-all': saveAll(); EditorActions.closeMenu(); break;
+          case 'duplicate-tab': duplicateTab(); EditorActions.closeMenu(); break;
+          case 'copy-name': copyFileName(); EditorActions.closeMenu(); break;
+          case 'reopen-tab': reopenClosedTab(); EditorActions.closeMenu(); break;
+          case 'close-all-tabs': closeAllTabs(); EditorActions.closeMenu(); break;
+          case 'refresh-tree': Sidebar.refresh(); break;
+          case 'toggle-bom': toggleBom(); EditorActions.closeMenu(); break;
+          case 'goto-line': openGoto(); EditorActions.closeMenu(); break;
+          case 'goto-apply': executeGoto(); break;
+          case 'shortcuts': openShortcuts(); EditorActions.closeMenu(); break;
+          case 'open-encoding-apply': applyOpenWithEncoding(); break;
+          case 'img-download': ImageViewer.download(); break;
+          case 'open-github': EditorActions.closeMenu(); break; // let the anchor navigate
           case 'toggle-sidebar': Sidebar.toggle(); EditorActions.closeMenu(); break;
           case 'reconnect-folder': reconnectFolder(); break;
           case 'open-recent': openRecent(el.dataset.recentKey); break;
@@ -1628,11 +1925,10 @@
           
           try {
             const text = cmEditor.getValue();
-            // Safe UTF-8 to Base64 encoding
-            const encoded = btoa(unescape(encodeURIComponent(text)));
+            const encoded = bytesToBase64(new TextEncoder().encode(text));
             cmEditor.setValue(encoded);
             const tab = getActiveTab();
-            if (tab) { tab.content = encoded; tab.bytesDirty = true; tab.isDirty = true; UI.renderTabs(); }
+            if (tab) { tab.content = encoded; tab.contentStale = false; tab.wordCount = countWords(encoded); tab.bytesDirty = true; tab.isDirty = true; UI.updateActiveTabVisual(); }
             UI.toast('Content encoded to Base64');
           } catch (e) {
             UI.toast('Failed to encode content: ' + e.message, 'error');
@@ -1645,17 +1941,21 @@
             return UI.toast('Decoding is disabled in this view', 'error');
           }
           
-          try {
-            const text = cmEditor.getValue().trim();
-            // Safe Base64 to UTF-8 decoding
-            const decoded = decodeURIComponent(escape(atob(text)));
-            cmEditor.setValue(decoded);
-            const tab = getActiveTab();
-            if (tab) { tab.content = decoded; tab.bytesDirty = true; tab.isDirty = true; UI.renderTabs(); }
-            UI.toast('Content decoded from Base64');
-          } catch (e) {
-            UI.toast('Invalid Base64 string', 'error');
+          const text = cmEditor.getValue().replace(/\s+/g, '');
+          if (!text) return UI.toast('Nothing to decode', 'error');
+          if (!/^[A-Za-z0-9+/]*={0,2}$/.test(text) || text.length % 4 !== 0) {
+            return UI.toast('Invalid Base64 string', 'error');
           }
+          let decoded;
+          try {
+            decoded = new TextDecoder('utf-8', { fatal: false }).decode(base64ToBytes(text));
+          } catch (e) {
+            return UI.toast('Invalid Base64 string', 'error');
+          }
+          cmEditor.setValue(decoded);
+          const tab = getActiveTab();
+          if (tab) { tab.content = decoded; tab.contentStale = false; tab.wordCount = countWords(decoded); tab.bytesDirty = true; tab.isDirty = true; UI.updateActiveTabVisual(); UI.updateStatusBar(); }
+          UI.toast('Content decoded from Base64');
         },
 
         showFindReplace(isReplace = false) {
@@ -1797,16 +2097,17 @@
           if (!query) return;
 
           const caseFold = !this.searchOpts.case && !this.searchOpts.regex && !this.searchOpts.word;
-          
+
           let cursor = cmEditor.getSearchCursor(query, cmEditor.getCursor('from'), {caseFold});
           if (cursor.findNext() && cursor.from().line === cmEditor.getCursor('from').line && cursor.from().ch === cmEditor.getCursor('from').ch) {
-             cursor.replace(replaceText);
+             const matched = cmEditor.getRange(cursor.from(), cursor.to());
+             cursor.replace(expandReplacement(query, matched, replaceText));
           }
-          
+
           this.doSearch(false);
           this.updateMatchHighlights();
         },
-        
+
         doReplaceAll() {
           if (!cmEditor) return;
           const queryText = document.getElementById('find-input').value;
@@ -1816,15 +2117,16 @@
 
           const caseFold = !this.searchOpts.case && !this.searchOpts.regex && !this.searchOpts.word;
           let count = 0;
-          
+
           cmEditor.operation(() => {
              let cursor = cmEditor.getSearchCursor(query, CodeMirror.Pos(cmEditor.firstLine(), 0), {caseFold});
              while (cursor.findNext()) {
-                cursor.replace(replaceText);
+                const matched = cmEditor.getRange(cursor.from(), cursor.to());
+                cursor.replace(expandReplacement(query, matched, replaceText));
                 count++;
              }
           });
-          
+
           UI.toast(`Replaced ${count} occurrence${count !== 1 ? 's' : ''}`);
           this.updateMatchHighlights();
         }
@@ -1873,10 +2175,50 @@
             await openFromHandle(handle);
           } else {
             const input = document.createElement('input'); input.type = 'file';
-            input.onchange = async e => { if(e.target.files[0]) await handleFileDrop(e.target.files[0]); };
+            input.onchange = async e => { const f = e.target.files[0]; input.remove(); if (f) await handleFileDrop(f); };
             input.click();
           }
         } catch (e) { if(e.name !== 'AbortError') UI.toast('Failed to open file.', 'error'); }
+      }
+
+      // Open a file forcing a user-selected encoding instead of auto-detecting.
+      function openWithEncoding() {
+        document.getElementById('encoding-modal').classList.add('active');
+      }
+
+      async function applyOpenWithEncoding() {
+        const choice = document.getElementById('open-encoding').value;
+        UI.closeModals();
+        const applyBytes = async (file, handle) => {
+          const buffer = await file.arrayBuffer();
+          const bytes = new Uint8Array(buffer);
+          const ext = file.name.split('.').pop().toLowerCase();
+          const isImage = IMAGE_EXTS.includes(ext);
+          const isBinary = !isImage && BINARY_EXTS.includes(ext);
+          let encoding = 'UTF-8', bom = false;
+          if (!isBinary && !isImage && choice !== 'auto') {
+            if (choice === 'UTF-8-BOM') { encoding = 'UTF-8'; bom = true; }
+            else if (choice === 'UTF-16LE') { encoding = 'UTF-16LE'; bom = false; }
+            else if (choice === 'UTF-16BE') { encoding = 'UTF-16BE'; bom = false; }
+            else { encoding = 'UTF-8'; bom = false; }
+          } else {
+            const det = (isBinary || isImage) ? { encoding: 'UTF-8', bom: false } : detectEncoding(bytes);
+            encoding = det.encoding; bom = det.bom;
+          }
+          const content = (isBinary || isImage) ? '' : decodeBytes(bytes, encoding, bom);
+          createTab(file.name, content, bytes, handle, getModeForExt(ext), isBinary, isImage, encoding, bom);
+        };
+        try {
+          if ('showOpenFilePicker' in window) {
+            const [handle] = await window.showOpenFilePicker();
+            if ((await requestPermission(handle, 'read')) !== 'granted') return UI.toast('Read permission was denied', 'error');
+            await applyBytes(await handle.getFile(), handle);
+          } else {
+            const input = document.createElement('input'); input.type = 'file';
+            input.onchange = async e => { const f = e.target.files[0]; input.remove(); if (f) await applyBytes(f, null); };
+            input.click();
+          }
+        } catch (e) { if (e.name !== 'AbortError') UI.toast('Failed to open file: ' + e.message, 'error'); }
       }
 
       // --- File System Access: open folder + sidebar tree ---
@@ -1927,12 +2269,54 @@
           document.getElementById('sidebar-title').textContent = handle.name || 'Folder';
           document.getElementById('sidebar-hint').style.display = 'none';
           document.getElementById('sidebar-reconnect').style.display = 'none';
+          const filterWrap = document.getElementById('tree-filter-wrap');
+          if (filterWrap) filterWrap.style.display = 'block';
+          const filterInput = document.getElementById('tree-filter');
+          if (filterInput) filterInput.value = '';
           this.show();
           const tree = document.getElementById('file-tree');
           tree.innerHTML = '';
           await this.renderDir(handle, tree, 0, handle);
           lucide.createIcons();
           IDB.putHandle({ key: 'folder', handle, name: handle.name || '', at: Date.now() });
+        },
+
+        async refresh() {
+          if (!this.rootHandle) return UI.toast('No folder is open', 'error');
+          try {
+            if ((await requestPermission(this.rootHandle, 'read')) !== 'granted') return UI.toast('Folder permission denied', 'error');
+            await this.setRoot(this.rootHandle);
+            UI.toast('Folder refreshed');
+          } catch (e) { UI.toast('Refresh failed: ' + e.message, 'error'); }
+        },
+
+        filter(query) {
+          const rows = [...document.querySelectorAll('#file-tree .tree-row')];
+          const nameOf = r => (r.querySelector('.tree-name')?.textContent || '').toLowerCase();
+          const q = (query || '').trim().toLowerCase();
+          if (!q) {
+            rows.forEach(r => r.style.display = '');
+            document.querySelectorAll('#file-tree .tree-children').forEach(c => c.style.display = '');
+            return;
+          }
+          const keep = new Set();
+          rows.forEach(r => {
+            if (!nameOf(r).includes(q)) return;
+            keep.add(r);
+            let p = r.parentElement;
+            while (p && p.id !== 'file-tree') {
+              if (p.classList.contains('tree-children')) {
+                const parentRow = p.previousElementSibling;
+                if (parentRow && parentRow.classList.contains('tree-row')) keep.add(parentRow);
+              }
+              p = p.parentElement;
+            }
+          });
+          rows.forEach(r => r.style.display = keep.has(r) ? '' : 'none');
+          document.querySelectorAll('#file-tree .tree-children').forEach(c => {
+            const hasVisible = [...c.children].some(ch => ch.classList.contains('tree-row') && ch.style.display !== 'none');
+            c.style.display = hasVisible ? '' : 'none';
+          });
         },
 
         async renderDir(dirHandle, container, depth, parentHandle) {
@@ -1965,6 +2349,8 @@
             row.dataset.treeId = id;
             row.dataset.action = 'tree-row';
             row.setAttribute('role', 'treeitem');
+            row.setAttribute('aria-level', String(depth + 1));
+            if (isDir) row.setAttribute('aria-expanded', 'false');
             row.style.paddingLeft = (10 + depth * 14) + 'px';
             row.innerHTML = '<span class="tree-caret' + (isDir ? '' : '') + '">' +
               (isDir ? '<i data-lucide="chevron-right" size="14"></i>' : '') + '</span>' +
@@ -2001,6 +2387,7 @@
           if (!row || !child) return;
           const caret = row.querySelector('.tree-caret');
           const open = child.classList.toggle('open');
+          row.setAttribute('aria-expanded', open ? 'true' : 'false');
           if (caret) caret.classList.toggle('open', open);
           if (open && !child.dataset.loaded) {
             await this.renderDir(node.handle, child, node.depth + 1, node.handle);
@@ -2089,9 +2476,20 @@
             ['Copy Data URL', '', () => shareDataUrl()],
             ['Toggle Line Ending (LF/CRLF)', '', () => toggleEol()],
             ['Cycle Encoding (UTF-8 / UTF-16)', '', () => cycleEncoding()],
+            ['Toggle Byte Order Mark (BOM)', '', () => toggleBom()],
+            ['Go to Line...', 'Ctrl+G', () => openGoto()],
+            ['Keyboard Shortcuts', '', () => openShortcuts()],
+            ['Duplicate Tab', '', () => duplicateTab()],
+            ['Copy File Name', '', () => copyFileName()],
+            ['Reopen Closed Tab', 'Ctrl+Shift+T', () => reopenClosedTab()],
+            ['Close All Tabs', '', () => closeAllTabs()],
+            ['Save All', '', () => saveAll()],
+            ['Open File with Encoding...', '', () => openWithEncoding()],
             ['Theme Editor...', '', () => openThemeEditor()],
             ['Crop Image', '', () => Crop.open()],
-            ['Resize Image', '', () => ImageResize.open()]
+            ['Resize Image', '', () => ImageResize.open()],
+            ['Download Edited Image', '', () => ImageViewer.download()],
+            ['About JustEdit Pro', '', () => UI.toast(APP_NAME + ' v' + APP_VERSION + ' — by ' + APP_AUTHOR)]
           ].map(([title, hint, run]) => ({ id: title, title, hint, run }));
         },
         async open() {
@@ -2193,8 +2591,9 @@
         },
         renderColorRows(vars) {
           const box = document.getElementById('theme-colors');
+          const safeColor = v => (/^#[0-9a-fA-F]{6}$/.test(v || '') ? v : (/^#[0-9a-fA-F]{3}$/.test(v || '') ? v : '#000000'));
           box.innerHTML = THEME_VARS.map(([v, label]) =>
-            '<div class="theme-color-row"><input type="color" data-theme-var="' + v + '" value="' + (vars[v] || '#000000') + '"><span>' + label + '</span></div>'
+            '<div class="theme-color-row"><input type="color" data-theme-var="' + v + '" value="' + safeColor(vars[v]) + '"><span>' + label + '</span></div>'
           ).join('');
           box.querySelectorAll('[data-theme-var]').forEach(inp => inp.addEventListener('input', () => this.preview()));
         },
@@ -2357,7 +2756,7 @@
             const ctx = c.getContext('2d');
             ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
             c.toBlob(b => {
-              if (!b) return UI.toast('Crop failed', 'error');
+              if (!b) { UI.closeModals(); return UI.toast('Crop failed', 'error'); }
               b.arrayBuffer().then(buf => {
                 tab.bytes = new Uint8Array(buf);
                 tab.imgEdits = defaultImgEdits();
@@ -2369,7 +2768,7 @@
               });
             }, 'image/png');
           };
-          img.onerror = () => UI.toast('Crop failed to decode', 'error');
+          img.onerror = () => { UI.closeModals(); UI.toast('Crop failed to decode', 'error'); };
           img.src = this.blobUrl;
         }
       };
@@ -2631,6 +3030,8 @@
           else if (header.includes('image/')) {
               const mime = header.split(';')[0];
               ext = mime.split('/')[1] || 'png';
+              if (ext === 'svg+xml') ext = 'svg';        // normalize the structured MIME
+              else if (ext === 'x-icon') ext = 'ico';
               isImage = true;
           }
 
@@ -2661,7 +3062,7 @@
 
         state.tabs.push({
           id, name, content: tabContent, bytes: tabBytes, bytesDirty: false, fileHandle, mode, isHex, isImage, isDirty: false, isPreviewOpen: false,
-          eol: detectEol(tabContent), encoding, bom
+          eol: detectEol(tabContent), encoding, bom, contentStale: false, wordCount: countWords(tabContent)
         });
         
         switchTab(id);
@@ -2672,6 +3073,14 @@
           const oldTab = getActiveTab();
           if(oldTab && !oldTab.isHex && !oldTab.isImage) {
             oldTab.content = cmEditor.getValue();
+            // Remember scroll position and selection so returning feels continuous.
+            const si = cmEditor.getScrollInfo();
+            oldTab.scrollTop = si.top; oldTab.scrollLeft = si.left;
+            try {
+              oldTab.selection = cmEditor.listSelections().map(s => ({
+                anchor: { line: s.anchor.line, ch: s.anchor.ch }, head: { line: s.head.line, ch: s.head.ch }
+              }));
+            } catch (_) { /* ignore */ }
           }
         }
         state.activeId = id;
@@ -2699,25 +3108,46 @@
             cmEditor.setValue(tab.content);
             cmEditor.setOption('mode', tab.mode);
             cmEditor.clearHistory();
+            tab.contentStale = false;
+            if (tab.wordCount == null) tab.wordCount = countWords(tab.content || '');
+            if (tab.selection && tab.selection.length) {
+              try {
+                cmEditor.setSelections(tab.selection.map(s => ({
+                  anchor: CodeMirror.Pos(s.anchor.line, s.anchor.ch), head: CodeMirror.Pos(s.head.line, s.head.ch)
+                })));
+              } catch (_) { /* selection no longer valid */ }
+            }
             if(tab.isPreviewOpen) {
               document.getElementById('md-preview').style.display = 'block';
               updateMarkdownPreview();
             } else {
               document.getElementById('md-preview').style.display = 'none';
             }
-            setTimeout(()=>cmEditor.refresh(), 10);
+            setTimeout(()=>{ cmEditor.refresh(); if (tab.scrollTop != null) cmEditor.scrollTo(tab.scrollLeft || 0, tab.scrollTop); }, 10);
           }
         }
         UI.renderAll();
       }
 
+      // Ring buffer of recently closed tabs for Reopen Closed Tab.
+      const closedTabs = [];
+
       function closeTab(id, e) {
         if(e) e.stopPropagation();
         const tab = state.tabs.find(t=>t.id===id);
         if(tab && tab.isDirty && !confirm(`Close ${tab.name} without saving?`)) return;
-        
+
+        if (tab) {
+          closedTabs.push({
+            name: tab.name, content: tab.content, bytes: tab.bytes ? tab.bytes.slice() : null,
+            fileHandle: tab.fileHandle || null, mode: tab.mode, isHex: tab.isHex, isImage: tab.isImage,
+            encoding: tab.encoding, bom: tab.bom, eol: tab.eol,
+            imgEdits: tab.imgEdits ? { ...tab.imgEdits } : null, isDirty: tab.isDirty
+          });
+          if (closedTabs.length > 10) closedTabs.shift();
+          IDB.delete(id); // drop any persisted binary payload regardless of current view
+        }
         state.tabs = state.tabs.filter(t=>t.id!==id);
-        if (tab && (tab.isHex || tab.isImage)) IDB.delete(id);
         
         if (state.tabs.length === 0) {
             createTab(); // Guaranteed to always have an open file
@@ -2727,6 +3157,169 @@
             UI.renderAll();
         }
         Storage.save();
+      }
+
+      // --- Tab / file commands ---
+      function duplicateTab() {
+        const t = getActiveTab();
+        if (!t) return;
+        const isBin = t.isHex || t.isImage;
+        createTab(t.name + ' (copy)', isBin ? '' : t.content, t.bytes ? t.bytes.slice() : null,
+          null, t.mode, t.isHex, t.isImage, t.encoding, t.bom);
+        const nt = getActiveTab();
+        if (nt) { nt.eol = t.eol; nt.imgEdits = t.imgEdits ? { ...t.imgEdits } : null; nt.isDirty = true; UI.renderTabs(); }
+        UI.toast('Tab duplicated');
+      }
+
+      async function copyFileName() {
+        const t = getActiveTab();
+        if (!t) return;
+        try { await navigator.clipboard.writeText(t.name); UI.toast('Copied: ' + t.name); }
+        catch (e) { UI.toast('Clipboard blocked', 'error'); }
+      }
+
+      function reopenClosedTab() {
+        const snap = closedTabs.pop();
+        if (!snap) return UI.toast('No closed tabs to reopen');
+        createTab(snap.name, snap.content, snap.bytes, snap.fileHandle || null,
+          snap.mode, snap.isHex, snap.isImage, snap.encoding, snap.bom);
+        const t = getActiveTab();
+        if (t) { t.eol = snap.eol || t.eol; t.imgEdits = snap.imgEdits || null; t.isDirty = !!snap.isDirty; switchTab(t.id); UI.renderTabs(); }
+        Storage.save();
+      }
+
+      function closeAllTabs() {
+        const dirty = state.tabs.filter(t => t.isDirty).length;
+        if (dirty && !confirm(`Close all tabs? ${dirty} unsaved file${dirty === 1 ? '' : 's'} will be lost.`)) return;
+        state.tabs.forEach(t => { if (t.isHex || t.isImage) IDB.delete(t.id); });
+        state.tabs = [];
+        state.activeId = null;
+        createTab();
+        UI.toast('All tabs closed');
+      }
+
+      async function saveAll() {
+        const tabs = state.tabs.slice();
+        let saved = 0, skipped = 0;
+        for (const t of tabs) {
+          if (!t.fileHandle) { skipped++; continue; }
+          if (state.activeId === t.id && !t.isHex && !t.isImage) { t.content = cmEditor.getValue(); t.bytesDirty = true; }
+          if (await directSave(t)) saved++;
+        }
+        UI.toast(`Saved ${saved} file${saved === 1 ? '' : 's'}` + (skipped ? ` · ${skipped} need Save As` : ''));
+      }
+
+      function cycleTabs(delta) {
+        if (state.tabs.length < 2) return;
+        const i = state.tabs.findIndex(t => t.id === state.activeId);
+        const next = ((i + delta) % state.tabs.length + state.tabs.length) % state.tabs.length;
+        switchTab(state.tabs[next].id);
+      }
+
+      function reorderTabs(srcId, targetId) {
+        const from = state.tabs.findIndex(t => t.id === srcId);
+        const to = state.tabs.findIndex(t => t.id === targetId);
+        if (from < 0 || to < 0 || from === to) return;
+        const [moved] = state.tabs.splice(from, 1);
+        state.tabs.splice(to, 0, moved);
+        UI.renderTabs();
+        Storage.save();
+      }
+
+      function toggleBom() {
+        const tab = getActiveTab();
+        if (!tab || tab.isHex || tab.isImage) return UI.toast('Not available in this view', 'error');
+        tab.bom = !tab.bom;
+        tab.isDirty = true;
+        tab.bytesDirty = true;
+        syncTabBytes(tab);
+        UI.renderTabs();
+        UI.updateStatusBar();
+        Storage.debouncedSave();
+        UI.toast('Byte Order Mark ' + (tab.bom ? 'added' : 'removed'));
+      }
+
+      function openGoto() {
+        const tab = getActiveTab();
+        if (!tab || tab.isHex || tab.isImage) return UI.toast('Go to line is only available for text files', 'error');
+        document.getElementById('goto-max').textContent = String(cmEditor.lineCount());
+        const input = document.getElementById('goto-input');
+        input.max = String(cmEditor.lineCount());
+        input.value = String(cmEditor.getCursor().line + 1);
+        document.getElementById('goto-modal').classList.add('active');
+        setTimeout(() => { input.focus(); input.select(); }, 40);
+      }
+
+      function executeGoto() {
+        const tab = getActiveTab();
+        if (!tab || tab.isHex || tab.isImage) return UI.closeModals();
+        const n = Math.max(1, Math.min(cmEditor.lineCount(), parseInt(document.getElementById('goto-input').value, 10) || 1));
+        cmEditor.setCursor({ line: n - 1, ch: 0 });
+        cmEditor.scrollIntoView({ line: n - 1, ch: 0 }, 80);
+        cmEditor.focus();
+        UI.closeModals();
+      }
+
+      function openShortcuts() {
+        const list = document.getElementById('shortcuts-list');
+        if (!list.dataset.built) {
+          const groups = [
+            ['File', [['New file', 'Ctrl N'], ['Open file', 'Ctrl O'], ['Save', 'Ctrl S'], ['Save As', 'Ctrl Shift S'], ['Close tab', 'Ctrl W'], ['Reopen closed tab', 'Ctrl Shift T'], ['Command palette', 'Ctrl Shift P / Ctrl P'], ['Go to line', 'Ctrl G'], ['Keyboard shortcuts', '?']]],
+            ['Editing', [['Undo / Redo', 'Ctrl Z / Ctrl Y'], ['Cut / Copy / Paste', 'Ctrl X / C / V'], ['Find / Replace', 'Ctrl F / Ctrl H'], ['Toggle comment', 'Ctrl /'], ['Duplicate line', 'Ctrl D'], ['Move line up / down', 'Alt ↑ / Alt ↓'], ['Indent / outdent', 'Tab / Shift Tab']]],
+            ['View', [['Toggle hex editor', '—'], ['Toggle Markdown preview', '—'], ['Next / previous tab', 'Ctrl Tab / Ctrl Shift Tab']]]
+          ];
+          list.innerHTML = groups.map(([title, rows]) =>
+            '<div class="sc-section">' + escapeHtml(title) + '</div>' +
+            rows.map(([label, key]) => '<div class="sc-row"><span>' + escapeHtml(label) + '</span><span class="sc-key">' + escapeHtml(key) + '</span></div>').join('')
+          ).join('');
+          list.dataset.built = '1';
+        }
+        document.getElementById('shortcuts-modal').classList.add('active');
+      }
+
+      // --- Line operations (used by the editor keymap) ---
+      function duplicateLines() {
+        const cm = cmEditor; if (!cm) return;
+        cm.operation(() => {
+          const lines = new Set();
+          cm.listSelections().forEach(r => {
+            const a = Math.min(r.anchor.line, r.head.line), b = Math.max(r.anchor.line, r.head.line);
+            for (let i = a; i <= b; i++) lines.add(i);
+          });
+          if (!lines.size) lines.add(cm.getCursor().line);
+          [...lines].sort((a, b) => b - a).forEach(li => {
+            const text = cm.getLine(li);
+            cm.replaceRange('\n' + text, CodeMirror.Pos(li, text.length));
+          });
+        });
+        cm.focus();
+      }
+
+      function moveLines(delta) {
+        const cm = cmEditor; if (!cm) return;
+        const sels = cm.listSelections().map(s => ({
+          a: Math.min(s.anchor.line, s.head.line), b: Math.max(s.anchor.line, s.head.line)
+        })).sort((x, y) => x.a - y.a);
+        if (!sels.length) return;
+        const first = sels[0].a, last = sels[sels.length - 1].b;
+        const n = cm.lineCount();
+        if ((delta < 0 && first === 0) || (delta > 0 && last === n - 1)) return;
+        cm.operation(() => {
+          if (delta < 0) {
+            const prev = cm.getLine(first - 1);
+            const block = cm.getRange(CodeMirror.Pos(first, 0), CodeMirror.Pos(last, cm.getLine(last).length));
+            cm.replaceRange(block + '\n' + prev, CodeMirror.Pos(first - 1, 0), CodeMirror.Pos(last, cm.getLine(last).length));
+          } else {
+            const next = cm.getLine(last + 1);
+            const block = cm.getRange(CodeMirror.Pos(first, 0), CodeMirror.Pos(last, cm.getLine(last).length));
+            cm.replaceRange(next + '\n' + block, CodeMirror.Pos(first, 0), CodeMirror.Pos(last + 1, cm.getLine(last + 1).length));
+          }
+          const shift = delta < 0 ? -1 : 1;
+          cm.setSelections(sels.map(s => ({
+            anchor: CodeMirror.Pos(s.a + shift, 0), head: CodeMirror.Pos(s.b + shift, 0)
+          })));
+        });
+        cm.focus();
       }
 
       function getActiveTab() { return state.tabs.find(t=>t.id===state.activeId); }
@@ -2744,6 +3337,8 @@
           
           cmEditor.setValue(code);
           tab.content = code;
+          tab.contentStale = false;
+          tab.wordCount = countWords(code);
           tab.bytesDirty = true;
           tab.isDirty = true;
           UI.renderTabs();
@@ -2766,6 +3361,8 @@
           } else {
             // Sync text view back from hex view modifications, honoring the tab encoding
             tab.content = decodeBytes(tab.bytes, tab.encoding, tab.bom);
+            tab.contentStale = false;
+            tab.wordCount = countWords(tab.content);
           }
         }
         switchTab(tab.id);
@@ -2858,6 +3455,54 @@
 
       const htmlEntities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
       const escapeHtml = s => String(s).replace(/[&<>"']/g, m => htmlEntities[m]);
+
+      // Chunked base64 helpers — avoid the deprecated unescape/escape dance and the
+      // call-stack limit that String.fromCharCode.apply hits on large buffers.
+      function bytesToBase64(u8) {
+        let bin = '';
+        for (let i = 0; i < u8.length; i += 0x8000) {
+          bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+        }
+        return btoa(bin);
+      }
+      function base64ToBytes(b64) {
+        const bin = atob(b64);
+        const out = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+        return out;
+      }
+
+      function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      function countWords(text) {
+        const t = String(text || '').trim();
+        return t ? t.split(/\s+/).length : 0;
+      }
+
+      // Expand $1/$&/$$ capture tokens for regex replacements using the matched text.
+      // (CodeMirror's SearchCursor has no .match, so we re-run the pattern on `matched`.)
+      function expandReplacement(query, matched, replaceText) {
+        if (!(query instanceof RegExp)) return replaceText;
+        if (replaceText.indexOf('$') === -1) return replaceText;
+        const m = String(matched).match(new RegExp(query.source, query.flags.replace(/g/g, '')));
+        if (!m) return replaceText;
+        return replaceText.replace(/\$(\$|&|\d{1,2})/g, (tok, g) => {
+          if (g === '$') return '$';
+          if (g === '&') return m[0];
+          const i = Number(g);
+          return m[i] != null ? m[i] : '';
+        });
+      }
 
       function rgbToHex(c) {
         if (!c) return '#000000';
@@ -3322,6 +3967,20 @@
           UI.renderTabs();
           Storage.debouncedSave();
         },
+        async download() {
+          const tab = getActiveTab();
+          if (!tab || !tab.isImage) return;
+          const fmt = document.getElementById('img-export-fmt').value;
+          const mime = getConvertibleImageMime(fmt);
+          if (!mime) return UI.toast('Unsupported export format', 'error');
+          try {
+            const quality = (tab.imgEdits || defaultImgEdits()).quality;
+            const blob = await renderEditedImage(tab, mime, quality);
+            const base = tab.name.replace(/\.[^.]+$/, '') || 'image';
+            downloadBlob(blob, base + '.' + fmt);
+            UI.toast('Exported ' + base + '.' + fmt);
+          } catch (e) { UI.toast('Export failed: ' + e.message, 'error'); }
+        },
         applyEdits() {
           const tab = getActiveTab();
           if (!tab || !tab.isImage) return;
@@ -3353,7 +4012,7 @@
         renderTabs() {
           const bar = document.getElementById('tabs-bar');
           bar.innerHTML = state.tabs.map(t => `
-            <div class="tab ${t.id === state.activeId ? 'active' : ''}" data-action="switch-tab" data-tab-id="${t.id}">
+            <div class="tab ${t.id === state.activeId ? 'active' : ''}" data-action="switch-tab" data-tab-id="${t.id}" draggable="true">
               <i data-lucide="${t.isImage ? 'image' : (t.isHex ? 'binary' : 'file-code')}" size="14"></i>
               <span class="tab-title">${escapeHtml(t.name)}</span>
               ${t.isDirty ? '<div class="tab-dirty-dot"></div>' : ''}
@@ -3406,6 +4065,10 @@
             encEl.style.cursor = 'default';
             encEl.removeAttribute('role');
             document.getElementById('sb-cursor').textContent = `Offset: 0x${(hexState.selectedIndex >= 0 ? hexState.selectedIndex : 0).toString(16).toUpperCase()}`;
+            const hexCursorEl = document.getElementById('sb-cursor');
+            hexCursorEl.removeAttribute('data-action'); hexCursorEl.removeAttribute('role');
+            hexCursorEl.removeAttribute('tabindex'); hexCursorEl.removeAttribute('title');
+            hexCursorEl.style.cursor = 'default';
             document.getElementById('sb-size').textContent = `${tab.bytes.length} Bytes`;
             document.getElementById('sb-hex-lbl').style.display = 'flex';
           } else if(tab.isImage) {
@@ -3418,6 +4081,10 @@
             encEl.removeAttribute('role');
             const img = document.getElementById('image-view-img');
             document.getElementById('sb-cursor').textContent = (img && img.naturalWidth) ? `${img.naturalWidth} × ${img.naturalHeight} px` : 'Image';
+            const imgCursorEl = document.getElementById('sb-cursor');
+            imgCursorEl.removeAttribute('data-action'); imgCursorEl.removeAttribute('role');
+            imgCursorEl.removeAttribute('tabindex'); imgCursorEl.removeAttribute('title');
+            imgCursorEl.style.cursor = 'default';
             document.getElementById('sb-size').textContent = `${tab.bytes.length} Bytes`;
             document.getElementById('sb-hex-lbl').style.display = 'none';
             const metaEl = document.getElementById('img-meta');
@@ -3427,7 +4094,7 @@
             }
           } else {
             langEl.textContent = languageLabel(tab.mode);
-            eolEl.textContent = tab.eol || detectEol(cmEditor.getValue());
+            eolEl.textContent = tab.eol || detectEol(getTabText(tab));
             eolEl.style.cursor = 'pointer';
             eolEl.setAttribute('role', 'button');
             encEl.textContent = (tab.encoding || 'UTF-8') + (tab.bom ? ' BOM' : '');
@@ -3435,8 +4102,22 @@
             encEl.setAttribute('role', 'button');
             const cursor = cmEditor.getCursor();
             const lines = cmEditor.lineCount();
-            document.getElementById('sb-cursor').textContent = `Ln ${cursor.line+1}, Col ${cursor.ch+1}`;
-            document.getElementById('sb-size').textContent = `${lines} Lines`;
+            const cursorEl = document.getElementById('sb-cursor');
+            cursorEl.textContent = `Ln ${cursor.line+1}, Col ${cursor.ch+1}`;
+            cursorEl.setAttribute('data-action', 'goto-line');
+            cursorEl.setAttribute('role', 'button');
+            cursorEl.tabIndex = 0;
+            cursorEl.style.cursor = 'pointer';
+            cursorEl.title = 'Go to line — click';
+            const sel = cmEditor.getSelection();
+            const sizeEl = document.getElementById('sb-size');
+            if (sel) {
+              const selLines = sel.split('\n').length;
+              sizeEl.textContent = `Sel ${sel.length} char${sel.length === 1 ? '' : 's'} · ${selLines} line${selLines === 1 ? '' : 's'}`;
+            } else {
+              if (tab.wordCount == null) tab.wordCount = countWords(getTabText(tab));
+              sizeEl.textContent = `${lines} Lines · ${tab.wordCount} Words`;
+            }
             document.getElementById('sb-hex-lbl').style.display = 'none';
             
             const menuSel = document.getElementById('menu-mode-select');
@@ -3599,11 +4280,17 @@
         quotaWarned: false,
         failed: false,
         suspend: false,
+        pending: false,
         useIDB: false,
-        debouncedSave() { clearTimeout(this.timer); this.timer = setTimeout(() => this.save(), 1000); },
+        debouncedSave() {
+          this.pending = true;
+          clearTimeout(this.timer);
+          this.timer = setTimeout(() => { if (this.pending) { this.pending = false; this.save(); } }, 1000);
+        },
         save() {
           if (this.suspend) return;
           try {
+            refreshActiveTextContent();
             const order = [];
             const safeTabs = state.tabs.map(t => {
               syncTabBytes(t);
@@ -3763,7 +4450,10 @@
         init, createTab, switchTab, closeTab, openFile, openFolder, openFromHandle, saveFile, executeSave, setMode,
         formatCode, toggleHex, togglePreview, showHtmlPreview, toggleFullscreenPreview,
         shareDataUrl, openDataUrl, processDataUrl, UI, Hex, EditorActions, ImageViewer, Sidebar,
-        Palette, ThemeEditor, Crop, ImageResize
+        Palette, ThemeEditor, Crop, ImageResize,
+        toggleBom, duplicateTab, copyFileName, reopenClosedTab, closeAllTabs, saveAll, cycleTabs, reorderTabs,
+        openGoto, executeGoto, openShortcuts, openWithEncoding, cycleEncoding,
+        APP_NAME, APP_VERSION, APP_AUTHOR, APP_URL
       };
 
     })();

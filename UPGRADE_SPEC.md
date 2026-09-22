@@ -349,3 +349,25 @@ Regression gates for every phase:
   re-scanning icons; and added CodeMirror addons — comment (Ctrl/Cmd+/), closetag +
   matchtags (with xml-fold) and continuelist. All verified via the CDP harness with zero
   exceptions, plus a full regression pass on a clean profile.*
+- *v1.1.0 — "everything left" release.*
+  - **About**: an About section in the menu with app name, version (1.1.0), author (Wayne
+    Scicluna) and a live GitHub link; `APP_NAME`/`APP_VERSION`/`APP_AUTHOR`/`APP_URL`
+    constants now drive it.
+  - **Quality of life**: editor shortcuts (duplicate line Ctrl/Cmd+D, move line Alt+↑/↓,
+    go-to-line Ctrl+G, Ctrl/Cmd+/ comment) with a `?` shortcuts sheet; tab drag-to-reorder,
+    middle-click close, Ctrl+Tab cycling, Save All, Close All, Reopen Closed Tab, Duplicate
+    Tab, Copy File Name; regex Replace All with `$1`/`$&`/`$$` capture groups; BOM toggle;
+    clickable line/column status with selection size and word count; sidebar refresh button +
+    type-to-filter; open-with-encoding; drag-and-drop folders; per-tab scroll/selection
+    memory; image export format picker + Download.
+  - **Fixes**: base64 encode/decode no longer use deprecated `escape`/`unescape` and handle
+    large/Unicode input safely; SVG (`image/svg+xml`) and ICO data URLs get correct
+    extensions; failed crops close their modal; the fallback file input is removed; Ctrl+P
+    opens the palette; IndexedDB payloads are cleaned up for every closed tab; theme color
+    inputs are validated; the active buffer is no longer pulled through `getValue()` on every
+    keystroke and persisted saves are coalesced.
+  - **Accessibility**: menu roles + arrow-key navigation, dialog semantics with focus trap
+    and focus restore, file-tree `aria-level`/`aria-expanded`, and `aria-live` on the hex
+    match counter.
+  - **Housekeeping**: inline SVG favicon, `theme-color` and description meta tags.
+  - Verified with a dedicated v1.1.0 CDP suite plus the full regression set, zero exceptions.*
