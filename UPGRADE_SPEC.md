@@ -238,9 +238,11 @@ migration, smooth hex rendering on large files — all within one HTML file.
 **Exit criteria:** modern engine, persisted preferences, improved search UX.
 
 ### Phase 3 — Power Features — **done**
-- 5.1 Folder open + read-only file-tree sidebar (File System Access API), lazy expansion.
+- ~~5.1 Folder open + read-only file-tree sidebar (File System Access API), lazy expansion.~~
+  **Removed** — the file-explorer sidebar and everything built to serve it (folder open,
+  file tree, filter, reconnect, drag-and-drop folders, persisted folder handle) were deleted.
 - 5.2 Save-back-to-original-handle (Ctrl/Cmd+S) with image-edit baking.
-- 5.6 Persisted folder/file handles in IndexedDB + Recent Files menu + reconnect.
+- 5.6 Persisted file handles in IndexedDB + Recent Files menu (folder handle/reconnect removed).
 - 5.3 Hex search (hex/text), match highlighting, next/prev, insert/delete bytes.
 - 5.5 Encoding detection + conversion: UTF-8, UTF-16 LE/BE (with/without BOM).
 - 5.4 Image crop (drag handles), resize (aspect lock), and metadata readout.
@@ -357,8 +359,8 @@ Regression gates for every phase:
     go-to-line Ctrl+G, Ctrl/Cmd+/ comment) with a `?` shortcuts sheet; tab drag-to-reorder,
     middle-click close, Ctrl+Tab cycling, Save All, Close All, Reopen Closed Tab, Duplicate
     Tab, Copy File Name; regex Replace All with `$1`/`$&`/`$$` capture groups; BOM toggle;
-    clickable line/column status with selection size and word count; sidebar refresh button +
-    type-to-filter; open-with-encoding; drag-and-drop folders; per-tab scroll/selection
+clickable line/column status with selection size and word count; open-with-encoding;
+per-tab scroll/selection
     memory; image export format picker + Download.
   - **Fixes**: base64 encode/decode no longer use deprecated `escape`/`unescape` and handle
     large/Unicode input safely; SVG (`image/svg+xml`) and ICO data URLs get correct
@@ -371,3 +373,28 @@ Regression gates for every phase:
     match counter.
   - **Housekeeping**: inline SVG favicon, `theme-color` and description meta tags.
   - Verified with a dedicated v1.1.0 CDP suite plus the full regression set, zero exceptions.*
+- *v1.2.0 — CSV / Table view:* an Excel-like grid for `.csv`/`.tsv`/`.tab` files with a
+  full Table ⇄ Text toggle. Zero-dependency RFC-4180 parser/serializer (quoted fields,
+  embedded delimiters/newlines, `""` escapes, Unicode) plus delimiter auto-detection and a
+  manual delimiter switcher and header-row toggle. Grid supports click/typing/double-click
+  editing, arrow/Tab/Enter/Home/End/PageUp-Down navigation, range selection, TSV copy/paste,
+  row and column insert/delete, drag column resizing, numeric right-alignment, natural-sort
+  per column, and an independent grid undo/redo stack. Edits re-serialize into the tab's raw
+  text (minimal quoting) and flow through the normal save/session pipeline; options are
+  session-only. Added a grid toolbar, menu command, palette command and status-bar readout.
+  Verified with a dedicated CSV CDP suite plus the full regression set, zero exceptions.*
+- *v1.2.0 — Sidebar removal:* deleted the file-explorer sidebar (`<aside id="sidebar">`) and
+  all components that existed to serve it — the `Sidebar` controller, `openFolder`/
+  `reconnectFolder`, `showDirectoryPicker` folder access, the file tree and its ARIA/filter
+  controls, the `tree-filter` input, `refresh-tree`/`tree-row`/`toggle-sidebar`/`open-folder`/
+  `reconnect-folder` actions, drag-and-drop folder handling, the persisted `folder` handle, the
+  sidebar/filter/reconnect CSS, and the "Open Folder…" / "Toggle Sidebar" menu and palette
+  entries. Recent-files handle persistence, single-file open, save-to-handle and the CSV grid
+  are unaffected. Regression set re-run clean.*
+- *v1.2.0 — Paste-from-clipboard button:* a clipboard button in the breadcrumb actions (and a
+  palette command) pastes the clipboard into the active text tab, reading `text/html` and
+  `text/plain` (with a `readText` fallback). When the pasted content looks like HTML
+  (`<!DOCTYPE html>`, `<html`, or common tags such as `<div>`, `<script>`, `<table>`…), it asks
+  once per tab whether to switch the file's language to HTML; the prompt never reappears on that
+  tab. Non-text views (hex/image/table) reject it, and an empty clipboard is a no-op. Verified
+  with a dedicated CDP suite plus the full regression set, zero exceptions.*

@@ -167,38 +167,6 @@
     }
     .icon-btn:hover, .icon-btn:active { background-color: var(--bg-hover); color: var(--text-main); }
 
-    /* File Explorer Sidebar */
-    #sidebar {
-      width: 260px; flex-shrink: 0; display: flex; flex-direction: column;
-      background-color: var(--bg-panel); border-right: 1px solid var(--border-dark); min-width: 0; overflow: hidden;
-    }
-    #sidebar.collapsed { display: none; }
-    #sidebar-header {
-      display: flex; align-items: center; gap: 6px; padding: 0 6px 0 12px; height: 44px;
-      border-bottom: 1px solid var(--border-light); color: var(--text-muted); font-size: 13px; font-weight: 600;
-    }
-    #sidebar-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main); }
-    #file-tree { flex: 1; overflow: auto; padding: 6px 0; font-size: 13px; }
-    .tree-row {
-      display: flex; align-items: center; gap: 6px; padding: 4px 10px; cursor: pointer;
-      color: var(--text-main); white-space: nowrap; user-select: none;
-    }
-    .tree-row:hover { background-color: var(--bg-hover); }
-    .tree-row.active { background-color: var(--bg-active); }
-    .tree-caret { width: 14px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: transform 0.15s; flex-shrink: 0; }
-    .tree-caret.open { transform: rotate(90deg); }
-    .tree-icon { flex-shrink: 0; color: var(--text-muted); }
-    .tree-name { overflow: hidden; text-overflow: ellipsis; }
-    .tree-children { display: none; }
-    .tree-children.open { display: block; }
-    #sidebar-hint, #sidebar-reconnect { padding: 12px 14px; color: var(--text-muted); font-size: 12px; }
-    #sidebar-reconnect { display: flex; }
-    #sidebar-reconnect .btn { width: 100%; }
-
-    @media (max-width: 768px) {
-      #sidebar { position: absolute; top: 0; bottom: 0; left: 0; z-index: 1500; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
-    }
-
     /* Main Editor Area */
     #main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; background-color: var(--bg-root); position: relative; }
 
@@ -476,6 +444,37 @@
     .crop-handle[data-handle="sw"] { bottom: -8px; left: -8px; cursor: nesw-resize; }
     .crop-handle[data-handle="se"] { bottom: -8px; right: -8px; cursor: nwse-resize; }
 
+    /* CSV / Table View (Excel-like grid) */
+    #table-view { background-color: var(--bg-root); flex-direction: column; outline: none; min-height: 0; }
+    #table-view.active { display: flex; }
+    #table-toolbar {
+      display: flex; align-items: center; gap: 8px; padding: 6px 12px; flex-shrink: 0;
+      background-color: var(--bg-panel); border-bottom: 1px solid var(--border-light); flex-wrap: wrap; row-gap: 6px;
+    }
+    #table-scroll { flex: 1; overflow: auto; position: relative; min-height: 0; -webkit-overflow-scrolling: touch; }
+    #table-grid { position: relative; font-family: var(--font-mono); font-size: 13px; }
+    #table-spacer { width: 1px; }
+    #table-content { position: absolute; top: 0; left: 0; }
+    .tbl-row { display: flex; height: var(--tbl-row-height, 26px); }
+    .tbl-row.tbl-head { position: sticky; top: 0; z-index: 3; background: var(--bg-panel); height: var(--tbl-head-height, 28px); }
+    .tbl-cell, .tbl-head-cell, .tbl-gutter {
+      flex: 0 0 auto; display: flex; align-items: center; padding: 0 8px; box-sizing: border-box;
+      border-right: 1px solid var(--border-dark); border-bottom: 1px solid var(--border-dark);
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--text-main);
+    }
+    .tbl-head-cell, .tbl-gutter { background: var(--bg-panel); color: var(--text-muted); font-weight: 600; font-size: 12px; justify-content: center; }
+    .tbl-gutter { position: sticky; left: 0; z-index: 2; }
+    .tbl-head-cell.tbl-gutter { z-index: 4; }
+    .tbl-head-cell { position: relative; }
+    .tbl-cell.num { justify-content: flex-end; }
+    .tbl-cell.selected { background: rgba(137, 180, 250, 0.18); }
+    .tbl-cell.active { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--bg-hover); }
+    .tbl-col-resize { position: absolute; top: 0; right: -3px; width: 6px; height: 100%; cursor: col-resize; z-index: 5; }
+    #table-editor {
+      position: absolute; display: none; z-index: 6; padding: 0 8px; border: 2px solid var(--accent);
+      background: var(--bg-root); color: var(--text-main); font-family: var(--font-mono); font-size: 13px; outline: none; box-sizing: border-box;
+    }
+
     /* --- MOBILE RESPONSIVE OVERRIDES --- */
     @media (max-width: 768px) {
       #split-view { flex-direction: column; }
@@ -498,25 +497,6 @@
 
   <div id="app-container">
     
-    <!-- File Explorer Sidebar -->
-    <aside id="sidebar" class="collapsed" aria-label="File explorer">
-      <div id="sidebar-header">
-        <i data-lucide="folder-tree" size="16" style="flex-shrink:0;"></i>
-        <span id="sidebar-title">No folder</span>
-        <button class="icon-btn" data-action="refresh-tree" title="Refresh" aria-label="Refresh folder"><i data-lucide="refresh-cw" size="16"></i></button>
-        <button class="icon-btn" data-action="open-folder" title="Open Folder" aria-label="Open Folder"><i data-lucide="folder-open" size="16"></i></button>
-        <button class="icon-btn" data-action="toggle-sidebar" title="Hide Sidebar" aria-label="Hide Sidebar"><i data-lucide="x" size="16"></i></button>
-      </div>
-      <div id="tree-filter-wrap" style="display:none; padding: 6px 10px 0;">
-        <input type="text" id="tree-filter" placeholder="Filter files…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="width:100%; padding:6px 10px; background:var(--bg-root); border:1px solid var(--border-dark); border-radius:6px; color:var(--text-main); font-size:12px; outline:none;">
-      </div>
-      <div id="file-tree" role="tree" aria-label="Files"></div>
-      <div id="sidebar-reconnect" style="display:none;">
-        <button class="btn btn-secondary" data-action="reconnect-folder"><i data-lucide="refresh-cw" size="14"></i> Reconnect folder</button>
-      </div>
-      <div id="sidebar-hint">Open a folder to browse files here.</div>
-    </aside>
-
     <!-- Main Content -->
     <main id="main-area">
       <!-- Tabs -->
@@ -525,11 +505,11 @@
       <!-- Breadcrumbs / Action Bar -->
       <div id="breadcrumbs">
         <div class="bc-path">
-          <button class="icon-btn" data-action="toggle-sidebar" title="Toggle Sidebar" aria-label="Toggle Sidebar" id="btn-sidebar" style="flex-shrink:0;"><i data-lucide="panel-left" size="18"></i></button>
           <i data-lucide="file-code-2" size="18" style="flex-shrink:0;"></i>
           <span id="bc-filename">Loading...</span>
         </div>
         <div class="bc-actions" id="bc-actions">
+          <button class="icon-btn" data-action="clipboard-paste" title="Paste from clipboard" id="btn-paste" aria-label="Paste from clipboard"><i data-lucide="clipboard" size="18"></i></button>
           <button class="icon-btn" data-action="show-html-preview" title="HTML Preview" id="btn-html-preview" style="display:none;" aria-label="HTML Preview"><i data-lucide="globe" size="18"></i></button>
           <button class="icon-btn" data-action="toggle-preview" title="Markdown Preview" id="btn-preview" style="display:none;" aria-label="Markdown Preview"><i data-lucide="layout" size="18"></i></button>
           <button class="icon-btn" data-action="save-file" title="Save" id="btn-save" aria-label="Save"><i data-lucide="save" size="18"></i></button>
@@ -545,7 +525,6 @@
           <div class="menu-item" data-action="new-file"><i data-lucide="file-plus" size="16"></i> New File</div>
           <div class="menu-item" data-action="open-file"><i data-lucide="folder-open" size="16"></i> Open File...</div>
           <div class="menu-item" data-action="open-file-encoding"><i data-lucide="file-code" size="16"></i> Open File with Encoding...</div>
-          <div class="menu-item" data-action="open-folder"><i data-lucide="folder-tree" size="16"></i> Open Folder...</div>
           <div class="menu-item" data-action="open-data-url"><i data-lucide="link" size="16"></i> Open Data URL...</div>
           <div class="menu-item" data-action="save-file"><i data-lucide="save" size="16"></i> Save</div>
           <div class="menu-item" data-action="save-file-as"><i data-lucide="save" size="16"></i> Save File As...</div>
@@ -576,9 +555,9 @@
           <div class="menu-section-title">View & Tools</div>
           <div class="menu-item" data-action="format-code"><i data-lucide="sparkles" size="16"></i> Format Document</div>
           <div class="menu-item" data-action="toggle-hex"><i data-lucide="binary" size="16"></i> Toggle Hex Editor</div>
+          <div class="menu-item" data-action="toggle-table"><i data-lucide="table" size="16"></i> Toggle Table / CSV View</div>
           <div class="menu-item" data-action="toggle-preview"><i data-lucide="layout" size="16"></i> Toggle MD Preview</div>
           <div class="menu-item" data-action="show-html-preview"><i data-lucide="globe" size="16"></i> HTML Live Preview</div>
-          <div class="menu-item" data-action="toggle-sidebar"><i data-lucide="panel-left" size="16"></i> Toggle Sidebar</div>
           <div class="menu-item" data-action="open-palette"><i data-lucide="command" size="16"></i> Command Palette...</div>
           <div class="menu-item" data-action="share-data-url"><i data-lucide="share-2" size="16"></i> Copy Data URL</div>
           <div class="menu-divider"></div>
@@ -677,7 +656,7 @@
           <div class="menu-item about-block" style="cursor: default;">
             <i data-lucide="info" size="16" style="flex-shrink: 0;"></i>
             <div style="line-height: 1.45; min-width: 0;">
-              <div style="font-weight: 600;">JustEdit Pro <span id="about-version" style="color: var(--text-muted); font-weight: 500;">v1.1.0</span></div>
+              <div style="font-weight: 600;">JustEdit Pro <span id="about-version" style="color: var(--text-muted); font-weight: 500;">v1.2.0</span></div>
               <div style="font-size: 12px; color: var(--text-muted);">by Wayne Scicluna</div>
             </div>
           </div>
@@ -767,6 +746,44 @@
           </div>
           <div id="image-canvas">
             <img id="image-view-img" alt="Image preview" draggable="false">
+          </div>
+        </div>
+
+        <!-- CSV / Table View (Excel-like grid) -->
+        <div id="table-view" class="view-pane" tabindex="0">
+          <div id="table-toolbar">
+            <button class="icon-btn" data-action="tbl-text-view" title="Switch to raw text" aria-label="Switch to raw text"><i data-lucide="file-code-2" size="16"></i></button>
+            <span class="adj-sep"></span>
+            <label class="field-label" style="margin:0;">Delim</label>
+            <select id="tbl-delim" data-action="tbl-delim" class="input-field" style="width:auto; padding:4px 8px; font-size:12px;" aria-label="Delimiter">
+              <option value=",">Comma</option>
+              <option value=";">Semicolon</option>
+              <option value="&#9;">Tab</option>
+              <option value="|">Pipe</option>
+            </select>
+            <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); white-space:nowrap;">
+              <input type="checkbox" id="tbl-header" data-action="tbl-header"> Header row
+            </label>
+            <span class="adj-sep"></span>
+            <button class="fr-toggle-btn" data-action="tbl-row-insert" title="Insert row below selection">+Row</button>
+            <button class="fr-toggle-btn" data-action="tbl-row-delete" title="Delete selected row(s)">−Row</button>
+            <button class="fr-toggle-btn" data-action="tbl-col-insert" title="Insert column right of selection">+Col</button>
+            <button class="fr-toggle-btn" data-action="tbl-col-delete" title="Delete selected column(s)">−Col</button>
+            <span class="adj-sep"></span>
+            <button class="fr-toggle-btn" data-action="tbl-sort" data-dir="asc" title="Sort column ascending">Sort ↑</button>
+            <button class="fr-toggle-btn" data-action="tbl-sort" data-dir="desc" title="Sort column descending">Sort ↓</button>
+            <span class="adj-sep"></span>
+            <button class="icon-btn" data-action="tbl-undo" title="Undo grid edit (Ctrl+Z)" aria-label="Undo"><i data-lucide="undo" size="16"></i></button>
+            <button class="icon-btn" data-action="tbl-redo" title="Redo grid edit (Ctrl+Y)" aria-label="Redo"><i data-lucide="redo" size="16"></i></button>
+            <span id="tbl-info" style="margin-left:auto; font-size:12px; color:var(--text-muted); white-space:nowrap;"></span>
+          </div>
+          <div id="table-scroll">
+            <div id="table-grid" role="grid" aria-label="CSV table">
+              <div id="table-header" class="tbl-row tbl-head" role="row"></div>
+              <div id="table-spacer"></div>
+              <div id="table-content"></div>
+              <input type="text" id="table-editor" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Edit cell">
+            </div>
           </div>
         </div>
 
@@ -1068,7 +1085,7 @@
     const App = (function() {
       // --- App identity ---
       const APP_NAME = 'JustEdit Pro';
-      const APP_VERSION = '1.1.0';
+      const APP_VERSION = '1.2.0';
       const APP_AUTHOR = 'Wayne Scicluna';
       const APP_URL = 'https://github.com/JagerWayne/justedit';
 
@@ -1124,6 +1141,7 @@
       };
       const BINARY_EXTS = ['bin','exe','dll','so','png','jpg','jpeg','gif','pdf','zip','tar','gz','iso','mp3','mp4'];
       const IMAGE_EXTS = ['png','jpg','jpeg','gif','bmp','webp','svg','ico','avif'];
+      const CSV_EXTS = ['csv','tsv','tab'];
       const IMAGE_MIMES = {
         'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'gif': 'image/gif',
         'bmp': 'image/bmp', 'webp': 'image/webp', 'svg': 'image/svg+xml', 'ico': 'image/x-icon', 'avif': 'image/avif'
@@ -1152,7 +1170,7 @@
         ['custom', '* Keep as typed above'], ['.bin', '.bin (Binary)'], ['.bmp', '.bmp (BMP image)'],
         ['.c', '.c (C)'], ['.cmake', '.cmake (CMake)'], ['.coffee', '.coffee (CoffeeScript)'],
         ['.conf', '.conf (Config)'], ['.cpp', '.cpp (C++)'], ['.cr', '.cr (Crystal)'], ['.cs', '.cs (C#)'],
-        ['.css', '.css (CSS)'], ['.dart', '.dart (Dart)'], ['.diff', '.diff (Diff)'], ['.go', '.go (Go)'],
+        ['.css', '.css (CSS)'], ['.csv', '.csv (CSV)'], ['.dart', '.dart (Dart)'], ['.diff', '.diff (Diff)'], ['.go', '.go (Go)'],
         ['.groovy', '.groovy (Groovy)'], ['.hs', '.hs (Haskell)'], ['.html', '.html (HTML)'],
         ['.ini', '.ini (INI)'], ['.java', '.java (Java)'], ['.jl', '.jl (Julia)'], ['.js', '.js (JavaScript)'],
         ['.json', '.json (JSON)'], ['.jpg', '.jpg (JPEG image)'], ['.kt', '.kt (Kotlin)'],
@@ -1161,7 +1179,7 @@
         ['.ps1', '.ps1 (PowerShell)'], ['.py', '.py (Python)'], ['.r', '.r (R)'], ['.rb', '.rb (Ruby)'],
         ['.rs', '.rs (Rust)'], ['.s', '.s (Assembly)'], ['.scala', '.scala (Scala)'], ['.scss', '.scss (SCSS)'],
         ['.sh', '.sh (Shell)'], ['.sql', '.sql (SQL)'], ['.swift', '.swift (Swift)'], ['.tex', '.tex (LaTeX)'],
-        ['.toml', '.toml (TOML)'], ['.ts', '.ts (TypeScript)'], ['.txt', '.txt (Text)'], ['.vb', '.vb (VB.NET)'],
+        ['.toml', '.toml (TOML)'], ['.ts', '.ts (TypeScript)'], ['.tsv', '.tsv (TSV)'], ['.txt', '.txt (Text)'], ['.vb', '.vb (VB.NET)'],
         ['.vue', '.vue (Vue)'], ['.webp', '.webp (WebP image)'], ['.xml', '.xml (XML)'], ['.yaml', '.yaml (YAML)']
       ];
 
@@ -1369,7 +1387,6 @@
         initCodeMirror();
         initEventListeners();
         await Storage.load();
-        Sidebar.restore();
         renderRecents();
       }
 
@@ -1426,7 +1443,7 @@
       // Pull the live editor buffer into the active tab's stored content on demand.
       function refreshActiveTextContent() {
         const tab = getActiveTab();
-        if (tab && !tab.isHex && !tab.isImage && tab.contentStale) {
+        if (tab && !tab.isHex && !tab.isImage && !tab.isTable && tab.contentStale) {
           tab.content = cmEditor.getValue();
           tab.contentStale = false;
         }
@@ -1437,7 +1454,7 @@
         clearTimeout(wordTimer);
         wordTimer = setTimeout(() => {
           const tab = getActiveTab();
-          if (tab && !tab.isHex && !tab.isImage) {
+          if (tab && !tab.isHex && !tab.isImage && !tab.isTable) {
             tab.wordCount = countWords(cmEditor.getValue());
             UI.updateStatusBar();
           }
@@ -1446,7 +1463,7 @@
 
       function getTabText(tab) {
         if (!tab) return '';
-        if (tab === getActiveTab() && !tab.isHex && !tab.isImage && cmEditor) return cmEditor.getValue();
+        if (tab === getActiveTab() && !tab.isHex && !tab.isImage && !tab.isTable && cmEditor) return cmEditor.getValue();
         return tab.content || '';
       }
       
@@ -1581,17 +1598,6 @@
         window.addEventListener('drop', async e => {
           e.preventDefault();
           dropZone.classList.remove('active');
-          // Prefer a dropped directory handle (Chromium) so dropping a folder opens the tree.
-          if (FS_SUPPORTED && e.dataTransfer.items && e.dataTransfer.items.length) {
-            for (const item of e.dataTransfer.items) {
-              if (item.kind === 'file' && typeof item.getAsFileSystemHandle === 'function') {
-                try {
-                  const h = await item.getAsFileSystemHandle();
-                  if (h && h.kind === 'directory') { await Sidebar.setRoot(h); return; }
-                } catch (_) { /* fall through to file handling */ }
-              }
-            }
-          }
           if(e.dataTransfer.files.length) {
             for(let f of e.dataTransfer.files) await handleFileDrop(f);
           }
@@ -1662,6 +1668,7 @@
 
         // Crop selection interactions (bind once)
         Crop.bind();
+        Table.bind();
 
         if (window.ResizeObserver) {
           new ResizeObserver(() => {
@@ -1694,10 +1701,6 @@
           if (tab) { e.preventDefault(); closeTab(tab.dataset.tabId); }
         });
 
-        // --- Sidebar filter ---
-        const treeFilter = document.getElementById('tree-filter');
-        if (treeFilter) treeFilter.addEventListener('input', () => Sidebar.filter(treeFilter.value));
-
         // --- Go to line: Enter submits ---
         const gotoInput = document.getElementById('goto-input');
         if (gotoInput) gotoInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); executeGoto(); } });
@@ -1718,7 +1721,7 @@
           if (el) dispatchAction(el, e);
         });
         document.addEventListener('change', e => {
-          const el = e.target.closest('[data-action="set-mode"], [data-action="set-theme"], [data-action="set-pref"]');
+          const el = e.target.closest('[data-action="set-mode"], [data-action="set-theme"], [data-action="set-pref"], [data-action="tbl-delim"], [data-action="tbl-header"]');
           if (el) dispatchAction(el, e);
         });
       }
@@ -1790,7 +1793,6 @@
           case 'new-file': createTab(); EditorActions.closeMenu(); break;
           case 'open-file': openFile(); EditorActions.closeMenu(); break;
           case 'open-file-encoding': openWithEncoding(); EditorActions.closeMenu(); break;
-          case 'open-folder': openFolder(); break;
           case 'open-data-url': openDataUrl(); EditorActions.closeMenu(); break;
           case 'save-file': saveFile(); EditorActions.closeMenu(); break;
           case 'save-file-as': saveFile(true); EditorActions.closeMenu(); break;
@@ -1799,7 +1801,6 @@
           case 'copy-name': copyFileName(); EditorActions.closeMenu(); break;
           case 'reopen-tab': reopenClosedTab(); EditorActions.closeMenu(); break;
           case 'close-all-tabs': closeAllTabs(); EditorActions.closeMenu(); break;
-          case 'refresh-tree': Sidebar.refresh(); break;
           case 'toggle-bom': toggleBom(); EditorActions.closeMenu(); break;
           case 'goto-line': openGoto(); EditorActions.closeMenu(); break;
           case 'goto-apply': executeGoto(); break;
@@ -1807,12 +1808,20 @@
           case 'open-encoding-apply': applyOpenWithEncoding(); break;
           case 'img-download': ImageViewer.download(); break;
           case 'open-github': EditorActions.closeMenu(); break; // let the anchor navigate
-          case 'toggle-sidebar': Sidebar.toggle(); EditorActions.closeMenu(); break;
-          case 'reconnect-folder': reconnectFolder(); break;
           case 'open-recent': openRecent(el.dataset.recentKey); break;
-          case 'tree-row': Sidebar.onRowClick(el.dataset.treeId); break;
           case 'format-code': formatCode(); EditorActions.closeMenu(); break;
           case 'toggle-hex': toggleHex(); EditorActions.closeMenu(); break;
+          case 'toggle-table': toggleTable(); EditorActions.closeMenu(); break;
+          case 'tbl-text-view': toggleTable(); break;
+          case 'tbl-delim': Table.setDelimiter(el.value); break;
+          case 'tbl-header': Table.setHeader(el.checked); break;
+          case 'tbl-row-insert': Table.insertRow(); break;
+          case 'tbl-row-delete': Table.deleteRow(); break;
+          case 'tbl-col-insert': Table.insertCol(); break;
+          case 'tbl-col-delete': Table.deleteCol(); break;
+          case 'tbl-sort': Table.sortColumn(el.dataset.dir); break;
+          case 'tbl-undo': Table.undo(); break;
+          case 'tbl-redo': Table.redo(); break;
           case 'toggle-preview': togglePreview(); EditorActions.closeMenu(); break;
           case 'show-html-preview': showHtmlPreview(); EditorActions.closeMenu(); break;
           case 'toggle-fullscreen-preview': toggleFullscreenPreview(); break;
@@ -1822,6 +1831,7 @@
           case 'cut': EditorActions.cut(); break;
           case 'copy': EditorActions.copy(); break;
           case 'paste': EditorActions.paste(); break;
+          case 'clipboard-paste': pasteFromClipboard(); EditorActions.closeMenu(); break;
           case 'encode-base64': EditorActions.encodeBase64(); break;
           case 'decode-base64': EditorActions.decodeBase64(); break;
           case 'find': EditorActions.showFindReplace(false); break;
@@ -1919,7 +1929,7 @@
         
         encodeBase64() {
           this.closeMenu();
-          if (!cmEditor || getActiveTab()?.isHex || getActiveTab()?.isImage) {
+          if (!cmEditor || getActiveTab()?.isHex || getActiveTab()?.isImage || getActiveTab()?.isTable) {
             return UI.toast('Encoding is disabled in this view', 'error');
           }
           
@@ -1937,7 +1947,7 @@
         
         decodeBase64() {
           this.closeMenu();
-          if (!cmEditor || getActiveTab()?.isHex || getActiveTab()?.isImage) {
+          if (!cmEditor || getActiveTab()?.isHex || getActiveTab()?.isImage || getActiveTab()?.isTable) {
             return UI.toast('Decoding is disabled in this view', 'error');
           }
           
@@ -1960,7 +1970,7 @@
 
         showFindReplace(isReplace = false) {
           this.closeMenu();
-          if (!cmEditor || getActiveTab()?.isHex || getActiveTab()?.isImage) {
+          if (!cmEditor || getActiveTab()?.isHex || getActiveTab()?.isImage || getActiveTab()?.isTable) {
             return UI.toast('Search is disabled in this view', 'error');
           }
           
@@ -2138,9 +2148,10 @@
         const ext = file.name.split('.').pop().toLowerCase();
         const isImage = IMAGE_EXTS.includes(ext);
         const isBinary = !isImage && BINARY_EXTS.includes(ext);
+        const isTable = !isImage && !isBinary && CSV_EXTS.includes(ext);
         const enc = (isBinary || isImage) ? { encoding: 'UTF-8', bom: false } : detectEncoding(bytes);
         const content = (isBinary || isImage) ? "" : decodeBytes(bytes, enc.encoding, enc.bom);
-        createTab(file.name, content, bytes, handle, getModeForExt(ext), isBinary, isImage, enc.encoding, enc.bom);
+        createTab(file.name, content, bytes, handle, getModeForExt(ext), isBinary, isImage, enc.encoding, enc.bom, isTable);
         return getActiveTab();
       }
 
@@ -2206,7 +2217,8 @@
             encoding = det.encoding; bom = det.bom;
           }
           const content = (isBinary || isImage) ? '' : decodeBytes(bytes, encoding, bom);
-          createTab(file.name, content, bytes, handle, getModeForExt(ext), isBinary, isImage, encoding, bom);
+          createTab(file.name, content, bytes, handle, getModeForExt(ext), isBinary, isImage, encoding, bom,
+            !isImage && !isBinary && CSV_EXTS.includes(ext));
         };
         try {
           if ('showOpenFilePicker' in window) {
@@ -2221,195 +2233,58 @@
         } catch (e) { if (e.name !== 'AbortError') UI.toast('Failed to open file: ' + e.message, 'error'); }
       }
 
-      // --- File System Access: open folder + sidebar tree ---
-      const FS_SUPPORTED = 'showDirectoryPicker' in window;
-
-      async function openFolder() {
-        EditorActions.closeMenu();
-        if (!FS_SUPPORTED) return UI.toast('Folder access is not supported in this browser', 'error');
-        try {
-          const dir = await window.showDirectoryPicker();
-          await Sidebar.setRoot(dir);
-        } catch (e) { if (e.name !== 'AbortError') UI.toast('Failed to open folder: ' + e.message, 'error'); }
+      // Heuristic HTML sniff for pasted content.
+      function looksLikeHtml(text) {
+        if (!text) return false;
+        if (/<!doctype\s+html/i.test(text)) return true;
+        if (/<\s*html[\s>]/i.test(text)) return true;
+        if (/<\s*(head|body|div|span|script|style|link|meta|title|p|a|img|br|hr|table|thead|tbody|tr|td|th|ul|ol|li|h[1-6]|section|header|footer|nav|main|aside|form|input|button|textarea|select|option|label|iframe|video|audio|canvas|svg)\b/i.test(text)) return true;
+        return false;
       }
 
-      async function reconnectFolder() {
-        const handle = Sidebar.rootHandle;
-        if (!handle) return;
+      // Paste from the clipboard into the active text tab. If the pasted content
+      // looks like HTML, offer once to switch the language to HTML.
+      async function pasteFromClipboard() {
+        const tab = getActiveTab();
+        if (!tab || tab.isHex || tab.isImage || tab.isTable) {
+          return UI.toast('Paste is not available in this view', 'error');
+        }
+        if (!cmEditor) return;
+
+        let text = '', html = '';
         try {
-          if ((await requestPermission(handle, 'read')) !== 'granted') return UI.toast('Folder permission denied', 'error');
-          await Sidebar.setRoot(handle);
-        } catch (e) { UI.toast('Failed to reconnect folder: ' + e.message, 'error'); }
-      }
-
-      const Sidebar = {
-        rootHandle: null,
-        nodeSeq: 0,
-        nodeMap: {},
-        activeId: null,
-
-        toggle() {
-          const el = document.getElementById('sidebar');
-          el.classList.toggle('collapsed');
-          if (cmEditor) setTimeout(() => cmEditor.refresh(), 10);
-        },
-
-        show() {
-          document.getElementById('sidebar').classList.remove('collapsed');
-          if (cmEditor) setTimeout(() => cmEditor.refresh(), 10);
-        },
-
-        addNode(node) { const id = 'n' + (++this.nodeSeq); this.nodeMap[id] = node; return id; },
-
-        async setRoot(handle) {
-          this.rootHandle = handle;
-          this.nodeSeq = 0;
-          this.nodeMap = {};
-          this.activeId = null;
-          document.getElementById('sidebar-title').textContent = handle.name || 'Folder';
-          document.getElementById('sidebar-hint').style.display = 'none';
-          document.getElementById('sidebar-reconnect').style.display = 'none';
-          const filterWrap = document.getElementById('tree-filter-wrap');
-          if (filterWrap) filterWrap.style.display = 'block';
-          const filterInput = document.getElementById('tree-filter');
-          if (filterInput) filterInput.value = '';
-          this.show();
-          const tree = document.getElementById('file-tree');
-          tree.innerHTML = '';
-          await this.renderDir(handle, tree, 0, handle);
-          lucide.createIcons();
-          IDB.putHandle({ key: 'folder', handle, name: handle.name || '', at: Date.now() });
-        },
-
-        async refresh() {
-          if (!this.rootHandle) return UI.toast('No folder is open', 'error');
-          try {
-            if ((await requestPermission(this.rootHandle, 'read')) !== 'granted') return UI.toast('Folder permission denied', 'error');
-            await this.setRoot(this.rootHandle);
-            UI.toast('Folder refreshed');
-          } catch (e) { UI.toast('Refresh failed: ' + e.message, 'error'); }
-        },
-
-        filter(query) {
-          const rows = [...document.querySelectorAll('#file-tree .tree-row')];
-          const nameOf = r => (r.querySelector('.tree-name')?.textContent || '').toLowerCase();
-          const q = (query || '').trim().toLowerCase();
-          if (!q) {
-            rows.forEach(r => r.style.display = '');
-            document.querySelectorAll('#file-tree .tree-children').forEach(c => c.style.display = '');
-            return;
-          }
-          const keep = new Set();
-          rows.forEach(r => {
-            if (!nameOf(r).includes(q)) return;
-            keep.add(r);
-            let p = r.parentElement;
-            while (p && p.id !== 'file-tree') {
-              if (p.classList.contains('tree-children')) {
-                const parentRow = p.previousElementSibling;
-                if (parentRow && parentRow.classList.contains('tree-row')) keep.add(parentRow);
-              }
-              p = p.parentElement;
-            }
-          });
-          rows.forEach(r => r.style.display = keep.has(r) ? '' : 'none');
-          document.querySelectorAll('#file-tree .tree-children').forEach(c => {
-            const hasVisible = [...c.children].some(ch => ch.classList.contains('tree-row') && ch.style.display !== 'none');
-            c.style.display = hasVisible ? '' : 'none';
-          });
-        },
-
-        async renderDir(dirHandle, container, depth, parentHandle) {
-          let entries = [];
-          try {
-            for await (const [name, h] of dirHandle.entries()) entries.push({ name, handle: h });
-          } catch (e) {
-            UI.toast('Unable to read folder: ' + e.message, 'error');
-            return;
-          }
-          entries.sort((a, b) => {
-            const ad = a.handle.kind === 'directory', bd = b.handle.kind === 'directory';
-            if (ad !== bd) return ad ? -1 : 1;
-            return a.name.localeCompare(b.name, undefined, { numeric: true });
-          });
-          container.innerHTML = '';
-          if (!entries.length) {
-            const empty = document.createElement('div');
-            empty.className = 'tree-row';
-            empty.style.paddingLeft = (10 + depth * 14) + 'px';
-            empty.innerHTML = '<span class="tree-caret"></span><span class="tree-name" style="color:var(--text-muted);">(empty)</span>';
-            container.appendChild(empty);
-            return;
-          }
-          for (const e of entries) {
-            const isDir = e.handle.kind === 'directory';
-            const id = this.addNode({ handle: e.handle, kind: e.handle.kind, name: e.name, depth, parentHandle });
-            const row = document.createElement('div');
-            row.className = 'tree-row' + (this.activeId === id ? ' active' : '');
-            row.dataset.treeId = id;
-            row.dataset.action = 'tree-row';
-            row.setAttribute('role', 'treeitem');
-            row.setAttribute('aria-level', String(depth + 1));
-            if (isDir) row.setAttribute('aria-expanded', 'false');
-            row.style.paddingLeft = (10 + depth * 14) + 'px';
-            row.innerHTML = '<span class="tree-caret' + (isDir ? '' : '') + '">' +
-              (isDir ? '<i data-lucide="chevron-right" size="14"></i>' : '') + '</span>' +
-              '<i class="tree-icon" data-lucide="' + (isDir ? 'folder' : 'file') + '" size="15"></i>' +
-              '<span class="tree-name">' + escapeHtml(e.name) + '</span>';
-            container.appendChild(row);
-            if (isDir) {
-              const child = document.createElement('div');
-              child.className = 'tree-children';
-              child.dataset.parentId = id;
-              container.appendChild(child);
+          if (navigator.clipboard && navigator.clipboard.read) {
+            const items = await navigator.clipboard.read();
+            for (const it of items) {
+              if (!html && it.types.includes('text/html')) html = await (await it.getType('text/html')).text();
+              if (!text && it.types.includes('text/plain')) text = await (await it.getType('text/plain')).text();
             }
           }
-        },
-
-        async onRowClick(id) {
-          const node = this.nodeMap[id];
-          if (!node) return;
-          if (node.kind === 'directory') { await this.toggleDir(id); return; }
-          const ok = await openFromHandle(node.handle);
-          if (ok) {
-            this.activeId = id;
-            document.querySelectorAll('#file-tree .tree-row.active').forEach(r => r.classList.remove('active'));
-            const row = document.querySelector('.tree-row[data-tree-id="' + id + '"]');
-            if (row) row.classList.add('active');
+          if (!text && navigator.clipboard && navigator.clipboard.readText) {
+            text = await navigator.clipboard.readText();
           }
-        },
+        } catch (e) {
+          return UI.toast('Clipboard blocked. Use your device native paste.', 'error');
+        }
 
-        async toggleDir(id) {
-          const node = this.nodeMap[id];
-          if (!node || node.kind !== 'directory') return;
-          const row = document.querySelector('.tree-row[data-tree-id="' + id + '"]');
-          const child = document.querySelector('.tree-children[data-parent-id="' + id + '"]');
-          if (!row || !child) return;
-          const caret = row.querySelector('.tree-caret');
-          const open = child.classList.toggle('open');
-          row.setAttribute('aria-expanded', open ? 'true' : 'false');
-          if (caret) caret.classList.toggle('open', open);
-          if (open && !child.dataset.loaded) {
-            await this.renderDir(node.handle, child, node.depth + 1, node.handle);
-            child.dataset.loaded = '1';
-            lucide.createIcons();
-          }
-        },
+        const insert = text || html;
+        if (!insert) return UI.toast('Clipboard is empty');
 
-        async restore() {
-          const rec = await IDB.getHandle('folder');
-          if (!rec || !rec.handle) return;
-          this.rootHandle = rec.handle;
-          document.getElementById('sidebar-title').textContent = rec.name || 'Folder';
-          const perm = rec.handle.queryPermission ? await rec.handle.queryPermission({ mode: 'read' }) : 'granted';
-          if (perm === 'granted') {
-            await this.setRoot(rec.handle);
+        cmEditor.replaceSelection(insert);
+        cmEditor.focus();
+        UI.toast('Pasted from clipboard');
+
+        // Ask at most once per tab whether to switch a pasted HTML snippet to HTML.
+        if (!tab.htmlPromptShown && (looksLikeHtml(insert) || looksLikeHtml(html)) && tab.mode !== 'htmlmixed') {
+          tab.htmlPromptShown = true;
+          if (confirm('The pasted content looks like HTML.\n\nSet this file\'s language to HTML?')) {
+            setMode('htmlmixed');
+            UI.toast('Language set to HTML');
           } else {
-            document.getElementById('sidebar-hint').style.display = 'none';
-            document.getElementById('sidebar-reconnect').style.display = 'flex';
+            UI.toast('Kept current language');
           }
         }
-      };
+      }
 
       // --- Recent files (persisted handles) ---
       async function addRecent(handle, name) {
@@ -2458,13 +2333,12 @@
           return [
             ['New File', 'Ctrl+N', () => createTab()],
             ['Open File...', 'Ctrl+O', () => openFile()],
-            ['Open Folder...', '', () => openFolder()],
             ['Save', 'Ctrl+S', () => saveFile()],
             ['Save File As...', '', () => saveFile(true)],
             ['Open Data URL...', '', () => openDataUrl()],
-            ['Toggle Sidebar', '', () => Sidebar.toggle()],
             ['Format Document', '', () => formatCode()],
             ['Toggle Hex Editor', '', () => toggleHex()],
+            ['Toggle Table / CSV View', '', () => toggleTable()],
             ['Toggle Markdown Preview', '', () => togglePreview()],
             ['HTML Live Preview', '', () => showHtmlPreview()],
             ['Find', 'Ctrl+F', () => EditorActions.showFindReplace(false)],
@@ -2474,6 +2348,7 @@
             ['Encode Base64', '', () => EditorActions.encodeBase64()],
             ['Decode Base64', '', () => EditorActions.decodeBase64()],
             ['Copy Data URL', '', () => shareDataUrl()],
+            ['Paste from Clipboard', '', () => pasteFromClipboard()],
             ['Toggle Line Ending (LF/CRLF)', '', () => toggleEol()],
             ['Cycle Encoding (UTF-8 / UTF-16)', '', () => cycleEncoding()],
             ['Toggle Byte Order Mark (BOM)', '', () => toggleBom()],
@@ -2878,7 +2753,7 @@
 
       async function directSave(tab) {
         if (!tab || !tab.fileHandle) return false;
-        if (tab === getActiveTab() && !tab.isHex && !tab.isImage) {
+        if (tab === getActiveTab() && !tab.isHex && !tab.isImage && !tab.isTable) {
           // The editor buffer is the source of truth for the active text tab.
           tab.content = cmEditor.getValue();
           tab.bytesDirty = true;
@@ -2927,7 +2802,7 @@
       async function executeSave() {
         const tab = getActiveTab();
         if(!tab) return;
-        if (!tab.isImage && !tab.isHex) {
+        if (!tab.isImage && !tab.isHex && !tab.isTable) {
           tab.content = cmEditor.getValue();
           tab.bytesDirty = true;
         }
@@ -3053,7 +2928,7 @@
         return `new-${n}`;
       }
 
-      function createTab(name=null, content="", bytes=null, fileHandle=null, mode="text/plain", isHex=false, isImage=false, encoding='UTF-8', bom=false) {
+      function createTab(name=null, content="", bytes=null, fileHandle=null, mode="text/plain", isHex=false, isImage=false, encoding='UTF-8', bom=false, isTable=false) {
         const id = 't_' + Math.random().toString(36).slice(2, 11);
         if(!name) name = nextUntitledName();
 
@@ -3061,7 +2936,8 @@
         const tabContent = content !== undefined ? content : decodeBytes(tabBytes, encoding, bom);
 
         state.tabs.push({
-          id, name, content: tabContent, bytes: tabBytes, bytesDirty: false, fileHandle, mode, isHex, isImage, isDirty: false, isPreviewOpen: false,
+          id, name, content: tabContent, bytes: tabBytes, bytesDirty: false, fileHandle, mode, isHex, isImage, isTable, isDirty: false, isPreviewOpen: false,
+          csvOptions: isTable ? {} : null,
           eol: detectEol(tabContent), encoding, bom, contentStale: false, wordCount: countWords(tabContent)
         });
         
@@ -3093,7 +2969,11 @@
         if(tab) {
           document.getElementById('sb-stats').style.display = 'flex';
           
-          if(tab.isHex) {
+          if(tab.isTable) {
+            document.querySelectorAll('.view-pane').forEach(el=>el.classList.remove('active'));
+            document.getElementById('table-view').classList.add('active');
+            Table.load(tab);
+          } else if(tab.isHex) {
             document.querySelectorAll('.view-pane').forEach(el=>el.classList.remove('active'));
             document.getElementById('hex-view').classList.add('active');
             syncTabBytes(tab);
@@ -3141,7 +3021,8 @@
           closedTabs.push({
             name: tab.name, content: tab.content, bytes: tab.bytes ? tab.bytes.slice() : null,
             fileHandle: tab.fileHandle || null, mode: tab.mode, isHex: tab.isHex, isImage: tab.isImage,
-            encoding: tab.encoding, bom: tab.bom, eol: tab.eol,
+            encoding: tab.encoding, bom: tab.bom, eol: tab.eol, isTable: tab.isTable,
+            csvOptions: tab.csvOptions ? { ...tab.csvOptions } : null,
             imgEdits: tab.imgEdits ? { ...tab.imgEdits } : null, isDirty: tab.isDirty
           });
           if (closedTabs.length > 10) closedTabs.shift();
@@ -3165,9 +3046,13 @@
         if (!t) return;
         const isBin = t.isHex || t.isImage;
         createTab(t.name + ' (copy)', isBin ? '' : t.content, t.bytes ? t.bytes.slice() : null,
-          null, t.mode, t.isHex, t.isImage, t.encoding, t.bom);
+          null, t.mode, t.isHex, t.isImage, t.encoding, t.bom, !!t.isTable);
         const nt = getActiveTab();
-        if (nt) { nt.eol = t.eol; nt.imgEdits = t.imgEdits ? { ...t.imgEdits } : null; nt.isDirty = true; UI.renderTabs(); }
+        if (nt) {
+          nt.eol = t.eol; nt.imgEdits = t.imgEdits ? { ...t.imgEdits } : null;
+          if (t.isTable) nt.csvOptions = t.csvOptions ? { ...t.csvOptions } : {};
+          nt.isDirty = true; UI.renderTabs();
+        }
         UI.toast('Tab duplicated');
       }
 
@@ -3182,9 +3067,13 @@
         const snap = closedTabs.pop();
         if (!snap) return UI.toast('No closed tabs to reopen');
         createTab(snap.name, snap.content, snap.bytes, snap.fileHandle || null,
-          snap.mode, snap.isHex, snap.isImage, snap.encoding, snap.bom);
+          snap.mode, snap.isHex, snap.isImage, snap.encoding, snap.bom, !!snap.isTable);
         const t = getActiveTab();
-        if (t) { t.eol = snap.eol || t.eol; t.imgEdits = snap.imgEdits || null; t.isDirty = !!snap.isDirty; switchTab(t.id); UI.renderTabs(); }
+        if (t) {
+          t.eol = snap.eol || t.eol; t.imgEdits = snap.imgEdits || null;
+          if (snap.isTable) t.csvOptions = snap.csvOptions ? { ...snap.csvOptions } : {};
+          t.isDirty = !!snap.isDirty; switchTab(t.id); UI.renderTabs();
+        }
         Storage.save();
       }
 
@@ -3228,7 +3117,7 @@
 
       function toggleBom() {
         const tab = getActiveTab();
-        if (!tab || tab.isHex || tab.isImage) return UI.toast('Not available in this view', 'error');
+        if (!tab || tab.isHex || tab.isImage || tab.isTable) return UI.toast('Not available in this view', 'error');
         tab.bom = !tab.bom;
         tab.isDirty = true;
         tab.bytesDirty = true;
@@ -3241,7 +3130,7 @@
 
       function openGoto() {
         const tab = getActiveTab();
-        if (!tab || tab.isHex || tab.isImage) return UI.toast('Go to line is only available for text files', 'error');
+        if (!tab || tab.isHex || tab.isImage || tab.isTable) return UI.toast('Go to line is only available for text files', 'error');
         document.getElementById('goto-max').textContent = String(cmEditor.lineCount());
         const input = document.getElementById('goto-input');
         input.max = String(cmEditor.lineCount());
@@ -3252,7 +3141,7 @@
 
       function executeGoto() {
         const tab = getActiveTab();
-        if (!tab || tab.isHex || tab.isImage) return UI.closeModals();
+        if (!tab || tab.isHex || tab.isImage || tab.isTable) return UI.closeModals();
         const n = Math.max(1, Math.min(cmEditor.lineCount(), parseInt(document.getElementById('goto-input').value, 10) || 1));
         cmEditor.setCursor({ line: n - 1, ch: 0 });
         cmEditor.scrollIntoView({ line: n - 1, ch: 0 }, 80);
@@ -3327,7 +3216,7 @@
 
       function formatCode() {
         const tab = getActiveTab();
-        if(!tab || tab.isHex || tab.isImage) return;
+        if(!tab || tab.isHex || tab.isImage || tab.isTable) return;
         let code = cmEditor.getValue();
         try {
           if(tab.mode === 'javascript' || tab.mode === 'application/json') code = js_beautify(code, { indent_size: 2 });
@@ -3348,6 +3237,7 @@
 
       function toggleHex() {
         const tab = getActiveTab(); if(!tab) return;
+        if (tab.isTable) tab.isTable = false; // hex and table are mutually exclusive
         tab.isHex = !tab.isHex;
         // Image tabs keep bytes as the source of truth; skip text<->byte conversions
         if(!tab.isImage) {
@@ -3366,6 +3256,21 @@
           }
         }
         switchTab(tab.id);
+      }
+
+      function toggleTable() {
+        const tab = getActiveTab();
+        if (!tab || tab.isHex || tab.isImage) return UI.toast('Not available in this view', 'error');
+        if (tab.isTable) {
+          tab.content = Table.toText();   // bake grid edits back into the raw text
+          tab.isTable = false;
+        } else {
+          tab.content = cmEditor.getValue(); // start from the current text buffer
+          tab.isTable = true;
+          tab.csvOptions = tab.csvOptions || {};
+        }
+        switchTab(tab.id);
+        UI.toast(tab.isTable ? 'CSV table view' : 'Text view');
       }
 
       function togglePreview() {
@@ -3388,7 +3293,7 @@
 
       function showHtmlPreview() {
         const tab = getActiveTab();
-        if (!tab || tab.isHex || tab.isImage) return;
+        if (!tab || tab.isHex || tab.isImage || tab.isTable) return;
         
         const htmlCode = cmEditor.getValue();
         const frame = document.getElementById('html-preview-frame');
@@ -3433,7 +3338,7 @@
         
         try {
           syncTabBytes(tab);
-          const code = tab.isHex ? decodeBytes(tab.bytes, tab.encoding, tab.bom) : cmEditor.getValue();
+          const code = tab.isHex ? decodeBytes(tab.bytes, tab.encoding, tab.bom) : (tab.isTable ? Table.toText() : cmEditor.getValue());
           const stream = new Blob([code]).stream().pipeThrough(new CompressionStream('gzip'));
           const buffer = await (new Response(stream)).arrayBuffer();
           // Chunked conversion: spreading the whole buffer into fromCharCode overflows the call stack on large files
@@ -3502,6 +3407,73 @@
           const i = Number(g);
           return m[i] != null ? m[i] : '';
         });
+      }
+
+      // --- CSV engine (RFC-4180-ish, zero dependencies) ---
+      function parseCsv(text, delimiter = ',', quote = '"') {
+        const rows = [];
+        let row = [], field = '', inQuotes = false, i = 0;
+        if (text && text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+        const n = text ? text.length : 0;
+        while (i < n) {
+          const c = text[i];
+          if (inQuotes) {
+            if (c === quote) {
+              if (text[i + 1] === quote) { field += quote; i += 2; continue; }
+              inQuotes = false; i++; continue;
+            }
+            field += c; i++; continue;
+          }
+          if (c === quote && field === '') { inQuotes = true; i++; continue; }
+          if (c === delimiter) { row.push(field); field = ''; i++; continue; }
+          if (c === '\r') { if (text[i + 1] === '\n') i++; row.push(field); field = ''; rows.push(row); row = []; i++; continue; }
+          if (c === '\n') { row.push(field); field = ''; rows.push(row); row = []; i++; continue; }
+          field += c; i++;
+        }
+        if (field !== '' || row.length) { row.push(field); rows.push(row); }
+        return rows;
+      }
+
+      function csvField(s, delimiter, quote) {
+        s = s == null ? '' : String(s);
+        if (s === '') return '';
+        if (s.indexOf(delimiter) !== -1 || s.indexOf(quote) !== -1 || /[\r\n]/.test(s) || /^\s|\s$/.test(s)) {
+          return quote + s.split(quote).join(quote + quote) + quote;
+        }
+        return s;
+      }
+
+      function serializeCsv(rows, delimiter = ',', eol = '\n', quote = '"') {
+        return rows.map(r => r.map(v => csvField(v, delimiter, quote)).join(delimiter)).join(eol);
+      }
+
+      // Pick comma/semicolon/tab/pipe by which appears outside quotes most consistently.
+      function detectDelimiter(text) {
+        const candidates = [',', ';', '\t', '|'];
+        const sample = (text || '').split(/\r?\n/).slice(0, 25).filter(l => l.trim() !== '');
+        if (!sample.length) return ',';
+        let best = ',', bestScore = -1;
+        for (const d of candidates) {
+          let total = 0, consistent = 0;
+          for (const line of sample) {
+            let count = 0, inQ = false;
+            for (let i = 0; i < line.length; i++) {
+              const c = line[i];
+              if (c === '"') inQ = !inQ;
+              else if (c === d && !inQ) count++;
+            }
+            total += count;
+            if (count > 0) consistent++;
+          }
+          const score = consistent === sample.length ? total + 1000 : total;
+          if (total > 0 && score > bestScore) { bestScore = score; best = d; }
+        }
+        return best;
+      }
+
+      function tableRectangular(rows, cols) {
+        const width = Math.max(cols || 0, ...rows.map(r => r.length), 1);
+        return rows.map(r => { const c = r.slice(); while (c.length < width) c.push(''); return c; });
       }
 
       function rgbToHex(c) {
@@ -4002,6 +3974,423 @@
         }
       };
 
+      // --- CSV / Table editor (Excel-like grid) ---
+      const tableState = {
+        data: [], cols: 1, delimiter: ',', hasHeader: false,
+        rowHeight: 26, headHeight: 28, gutterWidth: 56,
+        colWidths: [], sel: null, anchor: null, editing: false,
+        undo: [], redo: [], lastStart: -1, lastEnd: -1, lastLen: -1, _wlen: -1
+      };
+
+      const isNumericCell = v => v !== '' && v != null && /^-?\d+(\.\d+)?$/.test(String(v).trim());
+
+      const Table = {
+        DEFAULT_COL_WIDTH: 130,
+        MIN_COL_WIDTH: 48,
+
+        reparse(text, delimiter) {
+          tableState.delimiter = delimiter;
+          let rows = parseCsv(text || '', delimiter);
+          if (!rows.length) rows = [['']];
+          tableState.data = tableRectangular(rows, rows[0].length);
+          tableState.cols = tableState.data[0].length;
+          tableState.colWidths = new Array(tableState.cols).fill(this.DEFAULT_COL_WIDTH);
+          tableState.sel = { r: 0, c: 0 };
+          tableState.anchor = { r: 0, c: 0 };
+          tableState.editing = false;
+          tableState.lastStart = -1; tableState.lastEnd = -1; tableState.lastLen = -1; tableState._wlen = -1;
+        },
+
+        load(tab) {
+          const opt = tab.csvOptions || (tab.csvOptions = {});
+          if (!opt.delimiter) {
+            const ext = tab.name.split('.').pop().toLowerCase();
+            opt.delimiter = ext === 'tsv' || ext === 'tab' ? '\t' : detectDelimiter(tab.content || '');
+          }
+          opt.hasHeader = !!opt.hasHeader;
+          this.reparse(tab.content || '', opt.delimiter);
+          tableState.hasHeader = opt.hasHeader;
+          tableState.undo = []; tableState.redo = [];
+          this.syncControls();
+          document.getElementById('table-scroll').scrollTop = 0;
+          document.getElementById('table-scroll').scrollLeft = 0;
+          this.render();
+          setTimeout(() => { const v = document.getElementById('table-view'); if (v && v.classList.contains('active')) v.focus(); }, 10);
+        },
+
+        syncControls() {
+          const d = document.getElementById('tbl-delim');
+          const h = document.getElementById('tbl-header');
+          if (d) d.value = tableState.delimiter;
+          if (h) h.checked = tableState.hasHeader;
+        },
+
+        toText() {
+          const tab = getActiveTab();
+          const eol = (tab && tab.eol === 'CRLF') ? '\r\n' : '\n';
+          return serializeCsv(tableState.data, tableState.delimiter, eol);
+        },
+
+        totalWidth() { return tableState.gutterWidth + tableState.colWidths.reduce((a, b) => a + b, 0); },
+        totalHeight() { return tableState.data.length * tableState.rowHeight; },
+
+        colLabel(i) {
+          let s = '', n = i;
+          do { s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n / 26) - 1; } while (n >= 0);
+          return s;
+        },
+
+        render() {
+          const grid = document.getElementById('table-grid');
+          grid.style.width = this.totalWidth() + 'px';
+          grid.setAttribute('aria-rowcount', String(tableState.data.length));
+          grid.setAttribute('aria-colcount', String(tableState.cols));
+          document.getElementById('table-spacer').style.height = this.totalHeight() + 'px';
+          document.getElementById('table-header').innerHTML = this.headerCells();
+          document.getElementById('table-content').style.top = tableState.headHeight + 'px';
+          this.renderViewport(true);
+          this.updateInfo();
+        },
+
+        headerCells() {
+          const out = [`<div class="tbl-head-cell tbl-gutter" style="width:${tableState.gutterWidth}px">#</div>`];
+          for (let c = 0; c < tableState.cols; c++) {
+            out.push(`<div class="tbl-head-cell" data-col="${c}" style="width:${tableState.colWidths[c]}px">${this.colLabel(c)}<span class="tbl-col-resize" data-col="${c}"></span></div>`);
+          }
+          return out.join('');
+        },
+
+        rowHtml(r) {
+          const data = tableState.data[r] || [];
+          const cells = [`<div class="tbl-gutter tbl-cell" style="width:${tableState.gutterWidth}px">${r + 1}</div>`];
+          for (let c = 0; c < tableState.cols; c++) {
+            const val = data[c] != null ? data[c] : '';
+            const cls = 'tbl-cell' + (isNumericCell(val) ? ' num' : '')
+              + (this.inSelection(r, c) ? ' selected' : '') + (this.isActive(r, c) ? ' active' : '');
+            cells.push(`<div class="${cls}" data-r="${r}" data-c="${c}" style="width:${tableState.colWidths[c]}px" title="${escapeHtml(val)}">${escapeHtml(val) || '&nbsp;'}</div>`);
+          }
+          return `<div class="tbl-row" style="width:${this.totalWidth()}px">${cells.join('')}</div>`;
+        },
+
+        renderViewport(force) {
+          const scroll = document.getElementById('table-scroll');
+          const content = document.getElementById('table-content');
+          const rh = tableState.rowHeight;
+          const total = tableState.data.length;
+          const viewTop = Math.max(0, scroll.scrollTop - tableState.headHeight);
+          const visible = Math.ceil(scroll.clientHeight / rh) + 4;
+          let start = Math.floor(viewTop / rh) - 2; if (start < 0) start = 0;
+          const end = Math.min(total, start + visible);
+          if (!force && start === tableState.lastStart && end === tableState.lastEnd && total === tableState.lastLen && tableState.colWidths.length === tableState._wlen) return;
+          tableState.lastStart = start; tableState.lastEnd = end; tableState.lastLen = total; tableState._wlen = tableState.colWidths.length;
+          const html = [];
+          for (let r = start; r < end; r++) html.push(this.rowHtml(r));
+          content.style.transform = `translateY(${start * rh}px)`;
+          content.innerHTML = html.join('');
+        },
+
+        // ---- selection ----
+        isActive(r, c) { return tableState.sel && tableState.sel.r === r && tableState.sel.c === c; },
+        selectionBounds() {
+          const a = tableState.anchor || tableState.sel, s = tableState.sel || a;
+          if (!a || !s) return null;
+          return { r1: Math.min(a.r, s.r), r2: Math.max(a.r, s.r), c1: Math.min(a.c, s.c), c2: Math.max(a.c, s.c) };
+        },
+        inSelection(r, c) {
+          const b = this.selectionBounds();
+          return !!b && r >= b.r1 && r <= b.r2 && c >= b.c1 && c <= b.c2;
+        },
+
+        select(r, c, extend) {
+          tableState.sel = { r, c };
+          if (!extend || !tableState.anchor) tableState.anchor = { r, c };
+          this.viewport(true);
+          this.updateInfo();
+        },
+
+        cellEl(r, c) { return document.querySelector(`#table-content .tbl-cell[data-r="${r}"][data-c="${c}"]`); },
+
+        ensureVisible(r, c) {
+          const scroll = document.getElementById('table-scroll');
+          const { headHeight: head, rowHeight: rh, gutterWidth: gw } = tableState;
+          const rowTop = r * rh, rowBottom = rowTop + rh;
+          if (rowTop < scroll.scrollTop - head) scroll.scrollTop = rowTop + head;
+          else if (rowBottom > scroll.scrollTop + scroll.clientHeight - head) scroll.scrollTop = rowBottom - scroll.clientHeight + head;
+          let x = gw; for (let i = 0; i < c; i++) x += tableState.colWidths[i];
+          const right = x + tableState.colWidths[c];
+          if (x < scroll.scrollLeft + gw) scroll.scrollLeft = x - gw;
+          else if (right > scroll.scrollLeft + scroll.clientWidth) scroll.scrollLeft = right - scroll.clientWidth;
+        },
+
+        viewport(force) { this.ensureVisible(tableState.sel.r, tableState.sel.c); this.renderViewport(force === true); },
+
+        move(dr, dc, extend) {
+          const total = tableState.data.length;
+          const r = Math.max(0, Math.min(total - 1, tableState.sel.r + dr));
+          const c = Math.max(0, Math.min(tableState.cols - 1, tableState.sel.c + dc));
+          this.select(r, c, extend);
+        },
+
+        updateInfo() {
+          const el = document.getElementById('tbl-info');
+          if (!el) return;
+          const s = tableState.sel || { r: 0, c: 0 };
+          const delim = tableState.delimiter === '\t' ? 'Tab' : tableState.delimiter;
+          el.textContent = `${tableState.data.length} × ${tableState.cols} · ${this.colLabel(s.c)}${s.r + 1} · “${delim}”`;
+        },
+
+        // ---- editing ----
+        startEdit(initial) {
+          const { r, c } = tableState.sel;
+          const cell = this.cellEl(r, c);
+          if (!cell) { this.viewport(true); this.startEdit(initial); return; }
+          const scroll = document.getElementById('table-scroll');
+          const cr = cell.getBoundingClientRect(), sr = scroll.getBoundingClientRect();
+          const ed = document.getElementById('table-editor');
+          ed.style.display = 'block';
+          ed.style.left = (cr.left - sr.left + scroll.scrollLeft) + 'px';
+          ed.style.top = (cr.top - sr.top + scroll.scrollTop) + 'px';
+          ed.style.width = cr.width + 'px';
+          ed.style.height = cr.height + 'px';
+          ed.value = initial != null ? initial : (tableState.data[r][c] || '');
+          ed.dataset.r = r; ed.dataset.c = c;
+          tableState.editing = true;
+          ed.focus();
+          if (initial == null) ed.select(); else ed.setSelectionRange(ed.value.length, ed.value.length);
+        },
+
+        commitEdit(dr, dc) {
+          if (!tableState.editing) return;
+          const ed = document.getElementById('table-editor');
+          const r = Number(ed.dataset.r), c = Number(ed.dataset.c);
+          ed.style.display = 'none';
+          tableState.editing = false;
+          const val = ed.value;
+          if (tableState.data[r] && tableState.data[r][c] !== val) {
+            this.pushHistory();
+            tableState.data[r][c] = val;
+            this.syncToTab();
+          }
+          if (dr || dc) this.move(dr || 0, dc || 0, false); else this.viewport(true);
+          this.viewport(true);
+        },
+
+        cancelEdit() {
+          if (!tableState.editing) return;
+          const ed = document.getElementById('table-editor');
+          ed.style.display = 'none';
+          tableState.editing = false;
+          document.getElementById('table-view').focus();
+        },
+
+        // ---- history ----
+        pushHistory() {
+          tableState.undo.push(tableState.data.map(r => r.slice()));
+          if (tableState.undo.length > 100) tableState.undo.shift();
+          tableState.redo = [];
+        },
+        afterDataChange() {
+          tableState.cols = Math.max(1, ...tableState.data.map(r => r.length));
+          tableState.data = tableRectangular(tableState.data, tableState.cols);
+          while (tableState.colWidths.length < tableState.cols) tableState.colWidths.push(this.DEFAULT_COL_WIDTH);
+          tableState.colWidths.length = tableState.cols;
+          tableState.sel.r = Math.min(tableState.sel.r, tableState.data.length - 1);
+          tableState.sel.c = Math.min(tableState.sel.c, tableState.cols - 1);
+          tableState.anchor = { ...tableState.sel };
+          this.syncToTab();
+          this.render();
+        },
+        undo() { if (!tableState.undo.length) return; tableState.redo.push(tableState.data.map(r => r.slice())); tableState.data = tableState.undo.pop(); this.afterDataChange(); },
+        redo() { if (!tableState.redo.length) return; tableState.undo.push(tableState.data.map(r => r.slice())); tableState.data = tableState.redo.pop(); this.afterDataChange(); },
+
+        // ---- structural edits ----
+        insertRow() {
+          const at = this.selectionBounds() ? this.selectionBounds().r2 + 1 : tableState.sel.r + 1;
+          this.pushHistory();
+          tableState.data.splice(at, 0, new Array(tableState.cols).fill(''));
+          this.select(at, 0, false); this.syncToTab(); this.render();
+          UI.toast('Row inserted');
+        },
+        deleteRow() {
+          const b = this.selectionBounds(); if (!b) return;
+          this.pushHistory();
+          for (let r = b.r2; r >= b.r1; r--) { if (tableState.data.length > 1) tableState.data.splice(r, 1); else tableState.data[0] = new Array(tableState.cols).fill(''); }
+          this.afterDataChange();
+          UI.toast('Row deleted');
+        },
+        insertCol() {
+          const at = this.selectionBounds() ? this.selectionBounds().c2 + 1 : tableState.sel.c + 1;
+          this.pushHistory();
+          tableState.data.forEach(r => r.splice(at, 0, ''));
+          tableState.colWidths.splice(at, 0, this.DEFAULT_COL_WIDTH);
+          tableState.cols = tableState.data[0].length;
+          this.select(tableState.sel.r, at, false); this.syncToTab(); this.render();
+          UI.toast('Column inserted');
+        },
+        deleteCol() {
+          const b = this.selectionBounds(); if (!b) return;
+          if (tableState.cols <= 1) return UI.toast('Cannot delete the last column', 'error');
+          this.pushHistory();
+          for (let c = b.c2; c >= b.c1; c--) { tableState.data.forEach(r => r.splice(c, 1)); tableState.colWidths.splice(c, 1); }
+          this.afterDataChange();
+          UI.toast('Column deleted');
+        },
+        sortColumn(dir) {
+          const col = tableState.sel.c;
+          this.pushHistory();
+          const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+          const start = tableState.hasHeader ? 1 : 0;
+          const head = tableState.hasHeader ? tableState.data.slice(0, 1) : [];
+          const body = tableState.data.slice(start).sort((a, b) => {
+            const av = a[col] || '', bv = b[col] || '';
+            const an = isNumericCell(av), bn = isNumericCell(bv);
+            let cmp = (an && bn) ? (Number(av) - Number(bv)) : collator.compare(av, bv);
+            return dir === 'desc' ? -cmp : cmp;
+          });
+          tableState.data = head.concat(body);
+          this.afterDataChange();
+          UI.toast('Sorted by ' + this.colLabel(col));
+        },
+
+        // ---- clipboard ----
+        copy() {
+          const b = this.selectionBounds(); if (!b) return;
+          const lines = [];
+          for (let r = b.r1; r <= b.r2; r++) {
+            const cols = [];
+            for (let c = b.c1; c <= b.c2; c++) cols.push(tableState.data[r][c] != null ? tableState.data[r][c] : '');
+            lines.push(cols.join('\t'));
+          }
+          navigator.clipboard.writeText(lines.join('\n')).then(() => UI.toast('Copied')).catch(() => UI.toast('Clipboard blocked', 'error'));
+        },
+        async paste() {
+          let text = '';
+          try { text = await navigator.clipboard.readText(); } catch (e) { return UI.toast('Clipboard blocked. Use long-press paste.', 'error'); }
+          if (!text) return;
+          const rows = text.indexOf('\t') !== -1 ? parseCsv(text.replace(/\r/g, ''), '\t') : parseCsv(text.replace(/\r/g, ''), tableState.delimiter);
+          if (!rows.length) return;
+          this.pushHistory();
+          const base = tableState.sel;
+          for (let r = 0; r < rows.length; r++) {
+            const tr = base.r + r;
+            while (tableState.data.length <= tr) tableState.data.push(new Array(tableState.cols).fill(''));
+            for (let c = 0; c < rows[r].length; c++) {
+              const tc = base.c + c;
+              while (tableState.colWidths.length <= tc) { tableState.colWidths.push(this.DEFAULT_COL_WIDTH); tableState.data.forEach(row => row.push('')); }
+              tableState.data[tr][tc] = rows[r][c];
+            }
+          }
+          this.afterDataChange();
+          UI.toast('Pasted ' + rows.length + ' row' + (rows.length === 1 ? '' : 's'));
+        },
+
+        // ---- wire up (once) ----
+        bind() {
+          const view = document.getElementById('table-view');
+          const grid = document.getElementById('table-grid');
+          if (!view || view.dataset.bound) return;
+          view.dataset.bound = '1';
+
+          grid.addEventListener('mousedown', e => {
+            const rz = e.target.closest('.tbl-col-resize');
+            if (rz) { this.startColResize(e, Number(rz.dataset.col)); e.preventDefault(); return; }
+            if (e.target.closest('#table-editor')) return;
+            const cell = e.target.closest('.tbl-cell[data-r]');
+            if (!cell) return;
+            if (tableState.editing) this.commitEdit(0, 0);
+            this.select(Number(cell.dataset.r), Number(cell.dataset.c), e.shiftKey);
+            view.focus();
+            e.preventDefault();
+          });
+          grid.addEventListener('dblclick', e => {
+            const cell = e.target.closest('.tbl-cell[data-r]');
+            if (cell && !tableState.editing) this.startEdit();
+          });
+          document.getElementById('table-scroll').addEventListener('scroll', () => this.renderViewport(false));
+
+          view.addEventListener('keydown', e => this.onKeydown(e));
+
+          const ed = document.getElementById('table-editor');
+          ed.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); this.commitEdit(0, 0); }
+            else if (e.key === 'Escape') { e.preventDefault(); this.cancelEdit(); }
+            else if (e.key === 'Tab') { e.preventDefault(); this.commitEdit(0, e.shiftKey ? -1 : 1); }
+          });
+          ed.addEventListener('blur', () => { if (tableState.editing) this.commitEdit(0, 0); });
+        },
+
+        onKeydown(e) {
+          if (tableState.editing) return;
+          const k = e.key, mod = e.ctrlKey || e.metaKey;
+          const stop = () => e.preventDefault();
+          if (k === 'ArrowUp') { stop(); this.move(-1, 0, e.shiftKey); }
+          else if (k === 'ArrowDown') { stop(); this.move(1, 0, e.shiftKey); }
+          else if (k === 'ArrowLeft') { stop(); this.move(0, -1, e.shiftKey); }
+          else if (k === 'ArrowRight') { stop(); this.move(0, 1, e.shiftKey); }
+          else if (k === 'Tab') { stop(); this.move(0, e.shiftKey ? -1 : 1, false); }
+          else if (k === 'Enter' || k === 'F2') { stop(); this.startEdit(); }
+          else if (k === 'Home') { stop(); mod ? this.select(0, 0, false) : this.move(0, -tableState.sel.c, false); }
+          else if (k === 'End') { stop(); this.move(0, tableState.cols - 1 - tableState.sel.c, false); }
+          else if (k === 'PageDown') { stop(); this.move(Math.floor(document.getElementById('table-scroll').clientHeight / tableState.rowHeight) - 1, 0, false); }
+          else if (k === 'PageUp') { stop(); this.move(-(Math.floor(document.getElementById('table-scroll').clientHeight / tableState.rowHeight) - 1), 0, false); }
+          else if (k === 'Delete' || k === 'Backspace') {
+            stop(); this.pushHistory();
+            const b = this.selectionBounds();
+            for (let r = b.r1; r <= b.r2; r++) for (let c = b.c1; c <= b.c2; c++) tableState.data[r][c] = '';
+            this.syncToTab(); this.render();
+          }
+          else if (mod && k.toLowerCase() === 'c') { stop(); this.copy(); }
+          else if (mod && k.toLowerCase() === 'v') { stop(); this.paste(); }
+          else if (mod && k.toLowerCase() === 'a') { stop(); this.select(0, 0, false); this.select(tableState.data.length - 1, tableState.cols - 1, true); }
+          else if (mod && k.toLowerCase() === 'z') { stop(); e.shiftKey ? this.redo() : this.undo(); }
+          else if (mod && k.toLowerCase() === 'y') { stop(); this.redo(); }
+          else if (!mod && !e.altKey && k.length === 1) { stop(); this.startEdit(k); }
+        },
+
+        startColResize(e, col) {
+          const startX = e.clientX, startW = tableState.colWidths[col];
+          const move = ev => {
+            tableState.colWidths[col] = Math.max(this.MIN_COL_WIDTH, startW + (ev.clientX - startX));
+            const grid = document.getElementById('table-grid');
+            grid.style.width = this.totalWidth() + 'px';
+            document.getElementById('table-header').innerHTML = this.headerCells();
+            this.renderViewport(true);
+          };
+          const up = () => { document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); };
+          document.addEventListener('pointermove', move);
+          document.addEventListener('pointerup', up);
+        },
+
+        setDelimiter(d) {
+          const tab = getActiveTab(); if (!tab || !tab.isTable) return;
+          tab.csvOptions = tab.csvOptions || {};
+          tab.csvOptions.delimiter = d;
+          this.reparse(tab.content || '', d);
+          this.syncControls(); this.render();
+          UI.toast('Delimiter: ' + (d === '\t' ? 'Tab' : d));
+        },
+
+        setHeader(on) {
+          const tab = getActiveTab(); if (!tab || !tab.isTable) return;
+          tab.csvOptions = tab.csvOptions || {};
+          tab.csvOptions.hasHeader = !!on;
+          tableState.hasHeader = !!on;
+          this.syncToTab();
+        },
+
+        syncToTab() {
+          const tab = getActiveTab();
+          if (!tab || !tab.isTable) return;
+          tab.content = this.toText();
+          tab.contentStale = false;
+          tab.bytesDirty = true;
+          tab.isDirty = true;
+          UI.updateActiveTabVisual();
+          UI.updateStatusBar();
+          Storage.debouncedSave();
+        }
+      };
+
       const UI = {
         renderAll() { this.renderTabs(); this.updateStatusBar(); },
         updateBreadcrumb() {
@@ -4013,7 +4402,7 @@
           const bar = document.getElementById('tabs-bar');
           bar.innerHTML = state.tabs.map(t => `
             <div class="tab ${t.id === state.activeId ? 'active' : ''}" data-action="switch-tab" data-tab-id="${t.id}" draggable="true">
-              <i data-lucide="${t.isImage ? 'image' : (t.isHex ? 'binary' : 'file-code')}" size="14"></i>
+              <i data-lucide="${t.isImage ? 'image' : (t.isHex ? 'binary' : (t.isTable ? 'table' : 'file-code'))}" size="14"></i>
               <span class="tab-title">${escapeHtml(t.name)}</span>
               ${t.isDirty ? '<div class="tab-dirty-dot"></div>' : ''}
               <button class="tab-close" data-action="close-tab" data-tab-id="${t.id}" aria-label="Close ${escapeHtml(t.name)}"><i data-lucide="x" size="14"></i></button>
@@ -4056,7 +4445,25 @@
           const isNewFile = /^new-\d+$/.test(tab.name) && !tab.fileHandle;
           statusEl.textContent = (tab.isDirty || isNewFile) ? 'Unsaved' : 'Saved';
 
-          if(tab.isHex) {
+          if(tab.isTable) {
+            langEl.textContent = 'CSV';
+            eolEl.textContent = tab.eol || 'LF';
+            eolEl.style.cursor = 'pointer';
+            eolEl.setAttribute('role', 'button');
+            encEl.textContent = (tab.encoding || 'UTF-8') + (tab.bom ? ' BOM' : '');
+            encEl.style.cursor = 'pointer';
+            encEl.setAttribute('role', 'button');
+            const b = Table.selectionBounds();
+            const tblCursorEl = document.getElementById('sb-cursor');
+            tblCursorEl.textContent = `R${(b ? b.r1 : 0) + 1}C${(b ? b.c1 : 0) + 1}`;
+            tblCursorEl.removeAttribute('data-action'); tblCursorEl.removeAttribute('role');
+            tblCursorEl.removeAttribute('tabindex'); tblCursorEl.removeAttribute('title');
+            tblCursorEl.style.cursor = 'default';
+            document.getElementById('sb-size').textContent = `${tableState.data.length} × ${tableState.cols} cells`;
+            document.getElementById('sb-hex-lbl').style.display = 'none';
+            const tblMenuSel = document.getElementById('menu-mode-select');
+            if (tblMenuSel) tblMenuSel.value = 'text/plain';
+          } else if(tab.isHex) {
             langEl.textContent = 'Hex';
             eolEl.textContent = '—';
             eolEl.style.cursor = 'default';
@@ -4447,10 +4854,11 @@
 
 
       return {
-        init, createTab, switchTab, closeTab, openFile, openFolder, openFromHandle, saveFile, executeSave, setMode,
+        init, createTab, switchTab, closeTab, openFile, openFromHandle, saveFile, executeSave, setMode,
         formatCode, toggleHex, togglePreview, showHtmlPreview, toggleFullscreenPreview,
-        shareDataUrl, openDataUrl, processDataUrl, UI, Hex, EditorActions, ImageViewer, Sidebar,
-        Palette, ThemeEditor, Crop, ImageResize,
+        shareDataUrl, openDataUrl, processDataUrl, UI, Hex, EditorActions, ImageViewer,
+        Palette, ThemeEditor, Crop, ImageResize, Table, toggleTable, parseCsv, serializeCsv, detectDelimiter,
+        pasteFromClipboard, looksLikeHtml,
         toggleBom, duplicateTab, copyFileName, reopenClosedTab, closeAllTabs, saveAll, cycleTabs, reorderTabs,
         openGoto, executeGoto, openShortcuts, openWithEncoding, cycleEncoding,
         APP_NAME, APP_VERSION, APP_AUTHOR, APP_URL
