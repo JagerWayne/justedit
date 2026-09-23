@@ -556,6 +556,7 @@
           <div class="menu-item" data-action="format-code"><i data-lucide="sparkles" size="16"></i> Format Document</div>
           <div class="menu-item" data-action="toggle-hex"><i data-lucide="binary" size="16"></i> Toggle Hex Editor</div>
           <div class="menu-item" data-action="toggle-table"><i data-lucide="table" size="16"></i> Toggle Table / CSV View</div>
+          <div class="menu-item" data-action="detect-language"><i data-lucide="languages" size="16"></i> Detect Language</div>
           <div class="menu-item" data-action="toggle-preview"><i data-lucide="layout" size="16"></i> Toggle MD Preview</div>
           <div class="menu-item" data-action="show-html-preview"><i data-lucide="globe" size="16"></i> HTML Live Preview</div>
           <div class="menu-item" data-action="open-palette"><i data-lucide="command" size="16"></i> Command Palette...</div>
@@ -656,7 +657,7 @@
           <div class="menu-item about-block" style="cursor: default;">
             <i data-lucide="info" size="16" style="flex-shrink: 0;"></i>
             <div style="line-height: 1.45; min-width: 0;">
-              <div style="font-weight: 600;">JustEdit Pro <span id="about-version" style="color: var(--text-muted); font-weight: 500;">v1.2.0</span></div>
+              <div style="font-weight: 600;">JustEdit Pro <span id="about-version" style="color: var(--text-muted); font-weight: 500;">v1.3.0</span></div>
               <div style="font-size: 12px; color: var(--text-muted);">by Wayne Scicluna</div>
             </div>
           </div>
@@ -1085,7 +1086,7 @@
     const App = (function() {
       // --- App identity ---
       const APP_NAME = 'JustEdit Pro';
-      const APP_VERSION = '1.2.0';
+      const APP_VERSION = '1.3.0';
       const APP_AUTHOR = 'Wayne Scicluna';
       const APP_URL = 'https://github.com/JagerWayne/justedit';
 
@@ -1812,6 +1813,7 @@
           case 'format-code': formatCode(); EditorActions.closeMenu(); break;
           case 'toggle-hex': toggleHex(); EditorActions.closeMenu(); break;
           case 'toggle-table': toggleTable(); EditorActions.closeMenu(); break;
+          case 'detect-language': maybeOfferLanguage(getActiveTab(), { manual: true }); EditorActions.closeMenu(); break;
           case 'tbl-text-view': toggleTable(); break;
           case 'tbl-delim': Table.setDelimiter(el.value); break;
           case 'tbl-header': Table.setHeader(el.checked); break;
@@ -2152,7 +2154,9 @@
         const enc = (isBinary || isImage) ? { encoding: 'UTF-8', bom: false } : detectEncoding(bytes);
         const content = (isBinary || isImage) ? "" : decodeBytes(bytes, enc.encoding, enc.bom);
         createTab(file.name, content, bytes, handle, getModeForExt(ext), isBinary, isImage, enc.encoding, enc.bom, isTable);
-        return getActiveTab();
+        const tab = getActiveTab();
+        if (tab && tab.mode === 'text/plain' && !tab.isTable) maybeOfferLanguage(tab, { manual: false });
+        return tab;
       }
 
       async function requestPermission(handle, mode) {
@@ -2219,6 +2223,8 @@
           const content = (isBinary || isImage) ? '' : decodeBytes(bytes, encoding, bom);
           createTab(file.name, content, bytes, handle, getModeForExt(ext), isBinary, isImage, encoding, bom,
             !isImage && !isBinary && CSV_EXTS.includes(ext));
+          const tab = getActiveTab();
+          if (tab && tab.mode === 'text/plain' && !tab.isTable) maybeOfferLanguage(tab, { manual: false });
         };
         try {
           if ('showOpenFilePicker' in window) {
@@ -2239,6 +2245,129 @@
         if (/<!doctype\s+html/i.test(text)) return true;
         if (/<\s*html[\s>]/i.test(text)) return true;
         if (/<\s*(head|body|div|span|script|style|link|meta|title|p|a|img|br|hr|table|thead|tbody|tr|td|th|ul|ol|li|h[1-6]|section|header|footer|nav|main|aside|form|input|button|textarea|select|option|label|iframe|video|audio|canvas|svg)\b/i.test(text)) return true;
+        return false;
+      }
+
+      // Content-based language recognition for the core web/data set. Returns
+      // { mode, label, score } for the best match or null when nothing is confident.
+      const LANG_SIGNATURES = [
+        { mode: 'htmlmixed', label: 'HTML' },
+        { mode: 'xml', label: 'XML' },
+        { mode: 'application/json', label: 'JSON' },
+        { mode: 'markdown', label: 'Markdown' },
+        { mode: 'yaml', label: 'YAML' },
+        { mode: 'sql', label: 'SQL' },
+        { mode: 'python', label: 'Python' },
+        { mode: 'shell', label: 'Shell' },
+        { mode: 'text/x-scss', label: 'SCSS' },
+        { mode: 'css', label: 'CSS' },
+        { mode: 'text/typescript', label: 'TypeScript' },
+        { mode: 'javascript', label: 'JavaScript' }
+      ];
+
+      function detectLanguage(text) {
+        if (!text || !text.trim()) return null;
+        const t = text;
+        const count = re => (t.match(re) || []).length;
+        const scores = {};
+        const add = (mode, s) => { scores[mode] = (scores[mode] || 0) + s; };
+
+        // HTML
+        if (/<!doctype\s+html/i.test(t)) add('htmlmixed', 10);
+        if (/<\s*html[\s>]/i.test(t)) add('htmlmixed', 8);
+        if (/<\/\s*(div|span|p|a|ul|ol|li|h[1-6]|section|header|footer|nav|main|table|form|body|head|script|style)\s*>/i.test(t)) add('htmlmixed', 6);
+        const tagCount = count(/<\s*(div|span|p|a|img|ul|ol|li|h[1-6]|section|header|footer|nav|main|table|tr|td|form|input|button|script|style|link|meta|body|head|title)\b/gi);
+        if (tagCount >= 3) add('htmlmixed', Math.min(6, tagCount));
+
+        // XML (only when it doesn't look like HTML)
+        if (!/<\s*html[\s>]/i.test(t) && !/<!doctype\s+html/i.test(t)) {
+          if (/<\?xml\b/i.test(t)) add('xml', 9);
+          const xmlTags = count(/<\s*\/?[A-Za-z_][\w:.-]*(\s[^<>]*)?\/?>/g);
+          if (xmlTags >= 2 && !/[{};]/.test(t)) add('xml', Math.min(6, xmlTags));
+        }
+
+        // JSON
+        const trimmed = t.trim();
+        if (/^[\[{]/.test(trimmed)) {
+          try { JSON.parse(trimmed); add('application/json', 12); }
+          catch (_) { if (/"[^"]+"\s*:/.test(t) && !/=>|\bfunction\b/.test(t)) add('application/json', 3); }
+        }
+
+        // Markdown
+        if (/^#{1,6}\s+\S/m.test(t)) add('markdown', 5);
+        if (/^```/m.test(t)) add('markdown', 5);
+        if (/\[[^\]]+\]\([^)\s]+\)/.test(t)) add('markdown', 4);
+        if (/^\s*[-*+]\s+\S/m.test(t)) add('markdown', 2);
+        if (/^\s*>\s+\S/m.test(t)) add('markdown', 2);
+        if (/\*\*[^*\n]+\*\*/.test(t) || /^#{1,6}\s/m.test(t)) add('markdown', 1);
+
+        // YAML
+        const yamlKeys = count(/^[ \t]*[A-Za-z_][\w.-]*:[ \t]*\S*/gm);
+        if (yamlKeys >= 2 && !/[{};]/.test(t) && !/^#{1,6}\s/m.test(t)) add('yaml', Math.min(8, yamlKeys + 2));
+        if (/^---\s*$/m.test(t)) add('yaml', 3);
+
+        // SQL
+        if (/\b(SELECT|INSERT\s+INTO|UPDATE|DELETE\s+FROM|CREATE\s+(TABLE|DATABASE|INDEX|VIEW)|ALTER\s+TABLE|DROP\s+TABLE|JOIN|GROUP\s+BY|ORDER\s+BY|WHERE)\b/i.test(t)) add('sql', 8);
+
+        // Python
+        if (/^[ \t]*def\s+\w+\s*\([^)]*\)\s*:/m.test(t)) add('python', 9);
+        if (/^[ \t]*class\s+\w+[^\n]*:/m.test(t)) add('python', 6);
+        if (/^[ \t]*(import\s+[\w.]+|from\s+[\w.]+\s+import\s)/m.test(t)) add('python', 5);
+        if (/__name__\s*==\s*['"]__main__['"]/.test(t)) add('python', 8);
+        if (/^[ \t]*(elif|except|finally|with\s+.+:|yield\b|lambda\b)/m.test(t) || /\bself\./.test(t)) add('python', 3);
+
+        // Shell
+        if (/^#!.*\b(sh|bash|zsh|dash)\b/m.test(t)) add('shell', 10);
+        if (/\b(fi|done|esac)\b/.test(t) || /^[ \t]*(if|for|while)\s+.*;\s*then\b/m.test(t)) add('shell', 4);
+        if (/\b(echo|export|source|chmod|sudo)\s/.test(t)) add('shell', 2);
+        if (/\$\{?\w+\}?/.test(t) && /^[ \t]*\w+=/m.test(t)) add('shell', 2);
+
+        // CSS / SCSS
+        const cssBlocks = count(/[.#@&]?[\w-]+[^{};]*\{[^{}]*:[^{}]*;?[^{}]*\}/g);
+        if (cssBlocks >= 1 && !/=>|\bfunction\b/.test(t)) add('css', Math.min(7, cssBlocks * 2));
+        if (/@(media|import|keyframes|font-face)\b/.test(t)) add('css', 3);
+        if (/^[ \t]*\$[\w-]+\s*:/m.test(t)) add('text/x-scss', 6);
+        if (/&[:.\s\[]/.test(t)) add('text/x-scss', 5);
+        if (/@(mixin|include|extend|use|forward)\b/.test(t)) add('text/x-scss', 6);
+
+        // JavaScript / TypeScript
+        if (/\b(function|const|let|var)\s+\w+/.test(t)) add('javascript', 3);
+        if (/=>/.test(t)) add('javascript', 2);
+        if (/console\.(log|error|warn|info)\(/.test(t)) add('javascript', 3);
+        if (/\b(require\(|module\.exports|exports\.\w+|import\s+.+\s+from\s+['"])/.test(t)) add('javascript', 2);
+        if (/\b(interface|type)\s+\w+\s*(=|\{)|\b(implements|enum)\b|:\s*(string|number|boolean|any|void|unknown)\b/.test(t)) add('text/typescript', 5);
+
+        let best = null;
+        for (const sig of LANG_SIGNATURES) {
+          const score = scores[sig.mode] || 0;
+          if (score >= 4 && (!best || score > best.score)) best = { ...sig, score };
+        }
+        return best;
+      }
+
+      // Offer to switch a Plain Text tab to a detected language. `manual` is the
+      // explicit "Detect Language" command, which overrides and never prompts.
+      function maybeOfferLanguage(tab, { manual = false } = {}) {
+        if (!tab || tab.isHex || tab.isImage || tab.isTable) {
+          if (manual) UI.toast('Detection is not available in this view', 'error');
+          return false;
+        }
+        const det = detectLanguage(getTabText(tab) || '');
+        if (!det) { if (manual) UI.toast('Could not detect a language', 'error'); return false; }
+        if (!manual && (tab.mode && tab.mode !== 'text/plain')) return false; // never override a set language
+        if (manual) {
+          setMode(det.mode);
+          UI.toast('Language detected: ' + det.label);
+          return true;
+        }
+        if (tab.langPromptShown) return false; // ask at most once per tab
+        tab.langPromptShown = true;
+        if (confirm('This looks like ' + det.label + '.\n\nSet this file\'s language to ' + det.label + '?')) {
+          setMode(det.mode);
+          UI.toast('Language set to ' + det.label);
+          return true;
+        }
+        UI.toast('Kept Plain Text');
         return false;
       }
 
@@ -2274,16 +2403,8 @@
         cmEditor.focus();
         UI.toast('Pasted from clipboard');
 
-        // Ask at most once per tab whether to switch a pasted HTML snippet to HTML.
-        if (!tab.htmlPromptShown && (looksLikeHtml(insert) || looksLikeHtml(html)) && tab.mode !== 'htmlmixed') {
-          tab.htmlPromptShown = true;
-          if (confirm('The pasted content looks like HTML.\n\nSet this file\'s language to HTML?')) {
-            setMode('htmlmixed');
-            UI.toast('Language set to HTML');
-          } else {
-            UI.toast('Kept current language');
-          }
-        }
+        // Offer to set the language when the pasted content is recognisable.
+        maybeOfferLanguage(tab, { manual: false });
       }
 
       // --- Recent files (persisted handles) ---
@@ -2339,6 +2460,7 @@
             ['Format Document', '', () => formatCode()],
             ['Toggle Hex Editor', '', () => toggleHex()],
             ['Toggle Table / CSV View', '', () => toggleTable()],
+            ['Detect Language', '', () => maybeOfferLanguage(getActiveTab(), { manual: true })],
             ['Toggle Markdown Preview', '', () => togglePreview()],
             ['HTML Live Preview', '', () => showHtmlPreview()],
             ['Find', 'Ctrl+F', () => EditorActions.showFindReplace(false)],
@@ -4858,7 +4980,7 @@
         formatCode, toggleHex, togglePreview, showHtmlPreview, toggleFullscreenPreview,
         shareDataUrl, openDataUrl, processDataUrl, UI, Hex, EditorActions, ImageViewer,
         Palette, ThemeEditor, Crop, ImageResize, Table, toggleTable, parseCsv, serializeCsv, detectDelimiter,
-        pasteFromClipboard, looksLikeHtml,
+        pasteFromClipboard, looksLikeHtml, detectLanguage, maybeOfferLanguage,
         toggleBom, duplicateTab, copyFileName, reopenClosedTab, closeAllTabs, saveAll, cycleTabs, reorderTabs,
         openGoto, executeGoto, openShortcuts, openWithEncoding, cycleEncoding,
         APP_NAME, APP_VERSION, APP_AUTHOR, APP_URL

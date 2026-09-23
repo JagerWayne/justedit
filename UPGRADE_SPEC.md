@@ -398,3 +398,12 @@ per-tab scroll/selection
   once per tab whether to switch the file's language to HTML; the prompt never reappears on that
   tab. Non-text views (hex/image/table) reject it, and an empty clipboard is a no-op. Verified
   with a dedicated CDP suite plus the full regression set, zero exceptions.*
+- *v1.3.0 — Content-based language detection:* a heuristic `detectLanguage()` recogniser for the
+  core web/data set — HTML, XML, JSON, Markdown, YAML, SQL, Python, Shell, SCSS, CSS, TypeScript,
+  JavaScript — scoring each candidate and returning the best match above a confidence floor.
+  Wired into three places: pasting from the clipboard, opening a file whose extension is missing
+  or maps to Plain Text, and a new **Detect Language** menu/palette command. For paste/open it adds
+  a once-per-tab Yes/No confirm ("This looks like Python. Set the file's language to Python?") and
+  only ever offers on a Plain Text tab; the manual command applies immediately and can override.
+  The previous HTML-only paste prompt is now a special case of this system. Verified with a
+  dedicated CDP suite plus the full regression set, zero exceptions.*
